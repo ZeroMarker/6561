@@ -1,9 +1,12 @@
-<!DOCTYPE html>
-<html lang="zh">
+﻿<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#776e65">
     <title>6561</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <style>
         body {
             font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
@@ -133,21 +136,21 @@
         </div>
         <div id="game">
             <div id="overlay-win" class="overlay">
-                <h2>你赢了！</h2>
-                <p>达到了 6561！</p>
-                <button class="restart-btn" onclick="keepPlaying()">继续玩</button>
-                <button class="restart-btn" onclick="restartGame()">重新开始</button>
+                <h2>You Win!</h2>
+                <p>Reached 6561!</p>
+                <button class="restart-btn" onclick="keepPlaying()">Keep Playing</button>
+                <button class="restart-btn" onclick="restartGame()">Restart</button>
             </div>
             <div id="overlay-gameover" class="overlay">
-                <h2>游戏结束!</h2>
-                <p>再试一次?</p>
-                <button class="restart-btn" onclick="restartGame()">重新开始</button>
+                <h2>Game Over!</h2>
+                <p>Try again?</p>
+                <button class="restart-btn" onclick="restartGame()">Restart</button>
             </div>
         </div>
         <div id="instructions">
-            用方向键 / WASD 或滑动手指<br>
-            三个相同数字合并成下一个（3个3→9, 3个9→27, ..., 直到6561）<br>
-            达到 6561 胜利！继续挑战更高分数
+            Use arrow keys / WASD or swipe<br>
+            Merge three identical numbers (3 threes→9, 3 nines→27, ..., up to 6561)<br>
+            Reach 6561 to win! Continue for higher scores
         </div>
     </div>
 
@@ -413,6 +416,11 @@
         // 初始化
         restartGame();
         updateDisplay();
+
+        // Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js');
+        }
     </script>
 </body>
 </html>
