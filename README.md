@@ -29,14 +29,17 @@ A puzzle game where you merge three identical numbers to reach 6561. A variant o
 ## Installation
 
 ### Play Online
+
 Simply open `index.html` in your browser.
 
 ### Install as PWA
+
 1. Open the page in a modern browser (Chrome, Edge, Safari)
 2. Click the "Install" or "Add to Home Screen" button
 3. Launch the app from your home screen and play offline!
 
 ### Local Development
+
 ```bash
 # Clone or download the repository
 # Open index.html in your browser

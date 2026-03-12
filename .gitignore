@@ -137,3 +137,61 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+###
+
+# Gradle files
+.gradle/
+build/
+*/build/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Android Studio / IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+.idea_modules/
+
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Built application files
+*.apk
+*.ap_
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+
+# Native build files
+.externalNativeBuild
+.cxx/
+
+# Version control
+vcs.xml
+
+# Log files
+*.log
+
+# Android Profiling
+*.hprof
