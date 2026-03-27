@@ -1,0 +1,118 @@
+body {
+    font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+    background: #faf8ef;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    color: #776e65;
+    touch-action: manipulation;
+}
+.game-container {
+    text-align: center;
+    width: 100%;
+    max-width: 500px;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+h1 {
+    font-size: 80px;
+    margin: 0;
+    font-weight: bold;
+}
+#score, #best {
+    display: inline-block;
+    background: #bbada0;
+    color: #f9f6f2;
+    padding: 15px 25px;
+    font-size: 25px;
+    font-weight: bold;
+    border-radius: 3px;
+    margin: 8px;
+    min-width: 50px;
+}
+#game {
+    width: 456px;
+    height: 456px;
+    max-width: 95vw;
+    max-height: 95vw;
+    background: #bbada0;
+    border-radius: 6px;
+    padding: 4px;
+    margin: 20px auto;
+    position: relative;
+    box-sizing: content-box;
+    touch-action: none;
+}
+.tile {
+    border-radius: 3px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    transition: all 0.2s ease-in-out;
+    position: absolute;
+    color: #776e65;
+}
+.tile-1 { background: #eee4da; }
+.tile-2 { background: #ede0c8; }
+.tile-3 { background: #f2b179; color: #f9f6f2; }
+.tile-4 { background: #f59563; color: #f9f6f2; }
+.tile-5 { background: #f67c5f; color: #f9f6f2; }
+.tile-6 { background: #f65e3b; color: #f9f6f2; }
+.tile-7 { background: #edcf72; color: #f9f6f2; }
+.tile-8 { background: #edcc61; color: #f9f6f2; }
+.tile-9 { background: #edc53f; color: #f9f6f2; box-shadow: 0 0 30px #edc53f; }
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(238, 228, 218, 0.73);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    border-radius: 6px;
+    text-align: center;
+}
+.overlay.active { display: flex; }
+.overlay h2 {
+    font-size: 45px;
+    margin: 20px;
+    font-weight: bold;
+}
+.overlay p {
+    font-size: 25px;
+    margin: 10px;
+}
+.restart-btn {
+    background: #8f7a66;
+    color: #f9f6f2;
+    border: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 10px;
+    font-weight: bold;
+}
+.restart-btn:hover,
+.restart-btn:active {
+    background: #9f8a76;
+}
+#instructions {
+    margin-top: 20px;
+    font-size: 18px;
+    line-height: 1.4;
+}
+@media (max-width: 480px) {
+    h1 { font-size: 50px; }
+    #score, #best { font-size: 20px; padding: 12px 20px; }
+    .overlay h2 { font-size: 35px; }
+    .overlay p { font-size: 20px; }
+    .restart-btn { padding: 12px 24px; font-size: 16px; }
+    #instructions { font-size: 16px; }
+}
