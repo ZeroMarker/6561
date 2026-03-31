@@ -1,6 +1,6 @@
 {
   "name": "6561",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A puzzle game where you merge three identical numbers to reach 6561. A variant of the popular 2048 game.",
   "main": "sw.js",
   "dependencies": {
@@ -8,14 +8,34 @@
     "@capacitor/cli": "^8.2.0",
     "@capacitor/core": "^8.2.0"
   },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "vitest": "^1.4.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "npx serve .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint game.js sw.js",
+    "lint:fix": "eslint game.js sw.js --fix",
+    "format": "prettier --write \"**/*.{js,css,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,css,json,md}\"",
+    "build": "npm run build:minify",
+    "build:minify": "node scripts/minify.js",
+    "capacitor:sync": "npx cap sync android"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ZeroMarker/6561.git"
   },
-  "keywords": [],
+  "keywords": [
+    "puzzle",
+    "game",
+    "2048",
+    "merge",
+    "pwa"
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {

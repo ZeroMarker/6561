@@ -1,15 +1,12 @@
-const CACHE_NAME = '6561-v2';
+const CACHE_NAME = '6561-v4';
 const ASSETS = [
   '/',
   '/index.html',
-  '/www/styles.css',
-  '/www/game.js',
-  '/www/manifest.json',
-  '/www/icon-192.png',
-  '/www/icon-512.png',
+  '/styles.css',
+  '/game.js',
+  '/manifest.json',
   '/icon-192.png',
-  '/icon-512.png',
-  '/manifest.json'
+  '/icon-512.png'
 ];
 
 // 预缓存静态资源
@@ -22,7 +19,7 @@ self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
 
-// 清理旧缓存
+// 清理旧缓存并通知更新
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -30,35 +27,54 @@ self.addEventListener('activate', (e) => {
         keys.filter((key) => key !== CACHE_NAME)
             .map((key) => caches.delete(key))
       );
+    }).then(() => {
+      // 通知所有客户端已更新
+      return self.clients.claim();
+    }).then(() => {
+      // 通知客户端有更新可用
+      return self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({ type: 'UPDATE_AVAILABLE' });
+        });
+      });
     })
   );
-  self.clients.claim();
 });
 
 // 缓存策略：缓存优先，网络更新
 self.addEventListener('fetch', (e) => {
-  // 跳过非 GET 请求
   if (e.request.method !== 'GET') return;
-  
-  // 跳过 cross-origin 请求
   if (!e.request.url.startsWith(self.location.origin)) return;
-  
+
   e.respondWith(
     caches.match(e.request).then((cachedResponse) => {
-      // 返回缓存或 fetch 网络
       const fetchPromise = fetch(e.request).then((networkResponse) => {
-        // 缓存新的响应
-        const responseClone = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(e.request, responseClone);
-        });
+        if (networkResponse && networkResponse.status === 200) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(e.request, responseClone);
+          });
+        }
         return networkResponse;
       }).catch(() => {
-        // 网络失败，返回缓存（如果有）
         return cachedResponse;
       });
-      
+
+      // 如果有缓存就返回缓存，否则返回网络请求
       return cachedResponse || fetchPromise;
+    }).catch(() => {
+      // 完全离线时的回退
+      if (e.request.destination === 'document') {
+        return caches.match('/index.html');
+      }
+      return new Response('Offline', { status: 503 });
     })
   );
+});
+
+// 监听消息
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

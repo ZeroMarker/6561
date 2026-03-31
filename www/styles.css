@@ -1,118 +1,330 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
     font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
-    background: #faf8ef;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     margin: 0;
-    color: #776e65;
+    color: #f9f6f2;
     touch-action: manipulation;
 }
+
 .game-container {
     text-align: center;
     width: 100%;
     max-width: 500px;
-    padding: 0 10px;
+    padding: 20px 10px;
     box-sizing: border-box;
 }
+
 h1 {
-    font-size: 80px;
-    margin: 0;
+    font-size: 72px;
+    margin: 0 0 10px 0;
     font-weight: bold;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
+
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.score-container {
+    display: flex;
+    gap: 8px;
+}
+
 #score, #best {
-    display: inline-block;
-    background: #bbada0;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
     color: #f9f6f2;
-    padding: 15px 25px;
-    font-size: 25px;
+    padding: 12px 20px;
+    font-size: 20px;
     font-weight: bold;
-    border-radius: 3px;
-    margin: 8px;
-    min-width: 50px;
+    border-radius: 6px;
+    min-width: 70px;
+    border: 1px solid rgba(255,255,255,0.3);
 }
+
+#score {
+    background: rgba(237, 194, 64, 0.3);
+}
+
+#best {
+    background: rgba(237, 194, 64, 0.2);
+}
+
+.controls-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    color: #f9f6f2;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn:hover:not(:disabled) {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-2px);
+}
+
+.btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-install {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4); }
+    50% { box-shadow: 0 0 0 10px rgba(102, 126, 234, 0); }
+}
+
 #game {
     width: 456px;
     height: 456px;
-    max-width: 95vw;
-    max-height: 95vw;
-    background: #bbada0;
-    border-radius: 6px;
+    max-width: 90vw;
+    max-height: 90vw;
+    background: rgba(187, 173, 160, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
     padding: 4px;
     margin: 20px auto;
     position: relative;
     box-sizing: content-box;
     touch-action: none;
+    border: 2px solid rgba(255,255,255,0.2);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
+
 .tile {
-    border-radius: 3px;
+    border-radius: 6px;
     display: flex;
     justify-content: center;
     align-items: center;
     font-weight: bold;
-    transition: all 0.2s ease-in-out;
     position: absolute;
     color: #776e65;
+    transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
-.tile-1 { background: #eee4da; }
-.tile-2 { background: #ede0c8; }
-.tile-3 { background: #f2b179; color: #f9f6f2; }
-.tile-4 { background: #f59563; color: #f9f6f2; }
-.tile-5 { background: #f67c5f; color: #f9f6f2; }
-.tile-6 { background: #f65e3b; color: #f9f6f2; }
-.tile-7 { background: #edcf72; color: #f9f6f2; }
-.tile-8 { background: #edcc61; color: #f9f6f2; }
-.tile-9 { background: #edc53f; color: #f9f6f2; box-shadow: 0 0 30px #edc53f; }
+
+.tile-1 { background: linear-gradient(135deg, #eee4da, #e8e0d5); }
+.tile-2 { background: linear-gradient(135deg, #ede0c8, #e5d5c0); }
+.tile-3 { background: linear-gradient(135deg, #f2b179, #e8a568); color: #f9f6f2; }
+.tile-4 { background: linear-gradient(135deg, #f59563, #eb8a55); color: #f9f6f2; }
+.tile-5 { background: linear-gradient(135deg, #f67c5f, #ec6f52); color: #f9f6f2; }
+.tile-6 { background: linear-gradient(135deg, #f65e3b, #e75532); color: #f9f6f2; }
+.tile-7 { background: linear-gradient(135deg, #edcf72, #e0c060); color: #f9f6f2; }
+.tile-8 { background: linear-gradient(135deg, #edcc61, #e0bd50); color: #f9f6f2; }
+.tile-9 { 
+    background: linear-gradient(135deg, #edc53f, #ffb900); 
+    color: #f9f6f2; 
+    box-shadow: 0 0 30px #edc53f, 0 0 60px #edc53f;
+    animation: glow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from { box-shadow: 0 0 20px #edc53f, 0 0 40px #edc53f; }
+    to { box-shadow: 0 0 30px #edc53f, 0 0 60px #edc53f, 0 0 80px #edc53f; }
+}
+
 .overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(238, 228, 218, 0.73);
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
     display: none;
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    border-radius: 6px;
+    border-radius: 8px;
     text-align: center;
+    z-index: 100;
+    animation: fadeIn 0.3s ease;
 }
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 .overlay.active { display: flex; }
+
 .overlay h2 {
-    font-size: 45px;
-    margin: 20px;
+    font-size: 48px;
+    margin: 0 0 10px 0;
     font-weight: bold;
+    color: #fff;
 }
+
 .overlay p {
-    font-size: 25px;
-    margin: 10px;
+    font-size: 20px;
+    margin: 0 0 20px 0;
+    color: rgba(255,255,255,0.8);
 }
+
+.overlay-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
 .restart-btn {
-    background: #8f7a66;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #f9f6f2;
     border: none;
     padding: 15px 30px;
     font-size: 18px;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
-    margin: 10px;
     font-weight: bold;
+    transition: all 0.2s ease;
 }
-.restart-btn:hover,
-.restart-btn:active {
-    background: #9f8a76;
+
+.restart-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
 }
+
 #instructions {
-    margin-top: 20px;
-    font-size: 18px;
-    line-height: 1.4;
+    margin-top: 15px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.8);
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
 }
+
+/* 新手引导 */
+.tutorial-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.tutorial-overlay.active {
+    display: flex;
+    animation: fadeIn 0.3s ease;
+}
+
+.tutorial-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 30px;
+    border-radius: 16px;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.tutorial-content h3 {
+    font-size: 28px;
+    margin-bottom: 15px;
+    color: #fff;
+}
+
+.tutorial-content p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 20px;
+}
+
+.tutorial-tips {
+    text-align: left;
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.tutorial-tips li {
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+/* 响应式 */
 @media (max-width: 480px) {
-    h1 { font-size: 50px; }
-    #score, #best { font-size: 20px; padding: 12px 20px; }
-    .overlay h2 { font-size: 35px; }
-    .overlay p { font-size: 20px; }
-    .restart-btn { padding: 12px 24px; font-size: 16px; }
-    #instructions { font-size: 16px; }
+    h1 { font-size: 48px; }
+    
+    #score, #best { 
+        font-size: 16px; 
+        padding: 10px 15px;
+        min-width: 60px;
+    }
+    
+    .btn {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+    
+    #game {
+        width: 340px;
+        height: 340px;
+    }
+    
+    .overlay h2 { font-size: 36px; }
+    .overlay p { font-size: 16px; }
+    
+    #instructions { font-size: 13px; }
+    
+    .tutorial-content h3 { font-size: 24px; }
+    .tutorial-content p { font-size: 14px; }
+}
+
+/* 全面屏适配 */
+@supports (padding: max(0px)) {
+    body {
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
 }

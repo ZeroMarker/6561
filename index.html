@@ -2,40 +2,166 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#776e65">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Merge three identical numbers to reach 6561! A variant of 2048.">
     <title>6561</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="stylesheet" href="www/styles.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="light">
     <div class="game-container">
         <h1>6561</h1>
-        <div>
-            <div id="score">0</div>
-            <div id="best">0</div>
+
+        <div class="header-row">
+            <div class="score-container">
+                <div class="score-box">
+                    <div class="score-label">Score</div>
+                    <div id="score">0</div>
+                </div>
+                <div class="score-box">
+                    <div class="score-label">Best</div>
+                    <div id="best">0</div>
+                </div>
+                <div class="score-box">
+                    <div class="score-label">Moves</div>
+                    <div id="moves">0</div>
+                </div>
+                <div class="score-box">
+                    <div class="score-label">Time</div>
+                    <div id="timer">00:00</div>
+                </div>
+            </div>
         </div>
-        <div id="game">
-            <div id="overlay-win" class="overlay">
-                <h2>You Win!</h2>
+
+        <div class="controls-row">
+            <button class="btn" id="btn-undo" title="Undo (Ctrl+Z)" aria-label="Undo last move" aria-disabled="false">↶ Undo</button>
+            <button class="btn" id="btn-stats" title="Statistics" aria-label="View game statistics">📊 Stats</button>
+            <button class="btn" id="btn-settings" title="Settings" aria-label="Open settings">⚙️ Settings</button>
+            <button class="btn" id="btn-theme" title="Toggle theme" aria-label="Toggle dark/light theme">🌙 Dark</button>
+            <button class="btn" id="btn-sound" title="Toggle sound" aria-label="Toggle sound on/off">🔊 On</button>
+            <button class="btn" id="btn-restart-main" title="Start new game" aria-label="Start new game">🔄 New Game</button>
+            <button class="btn btn-install" id="btn-install" style="display:none;" aria-label="Install app">📲 Install</button>
+        </div>
+
+        <div id="game" role="application" aria-label="6561 game board">
+            <div id="overlay-win" class="overlay" role="dialog" aria-labelledby="win-title">
+                <h2 id="win-title">🎉 You Win!</h2>
                 <p>Reached 6561!</p>
-                <button class="restart-btn" id="btn-keep-playing">Keep Playing</button>
-                <button class="restart-btn" id="btn-restart-win">Restart</button>
+                <div id="win-stats"></div>
+                <div class="overlay-buttons">
+                    <button class="restart-btn" id="btn-keep-playing">Keep Playing</button>
+                    <button class="restart-btn" id="btn-restart-win">Restart</button>
+                </div>
             </div>
-            <div id="overlay-gameover" class="overlay">
-                <h2>Game Over!</h2>
-                <p>Try again?</p>
-                <button class="restart-btn" id="btn-restart-lose">Restart</button>
+            <div id="overlay-gameover" class="overlay" role="dialog" aria-labelledby="gameover-title">
+                <h2 id="gameover-title">😢 Game Over!</h2>
+                <p>Score: <span id="final-score">0</span></p>
+                <p>Moves: <span id="final-moves">0</span></p>
+                <p>Time: <span id="final-time">00:00</span></p>
+                <p>Max Combo: <span id="final-combo">0</span></p>
+                <div class="overlay-buttons">
+                    <button class="restart-btn" id="btn-restart-lose">Try Again</button>
+                </div>
             </div>
         </div>
+
         <div id="instructions">
-            Use arrow keys / WASD or swipe<br>
-            Merge three identical numbers (3 threes→9, 3 nines→27, ..., up to 6561)<br>
-            Reach 6561 to win! Continue for higher scores
+            <strong>How to play:</strong> Arrow keys / WASD or swipe to move tiles.<br>
+            Merge <strong>three identical numbers</strong> (3+3+3→9, 9+9+9→27, ... →6561)<br>
+            <strong>Tip:</strong> Press Ctrl+Z or click Undo to reverse a move. Build combos for bonus points!
         </div>
     </div>
 
-    <script src="www/game.js"></script>
+    <!-- 新手引导 -->
+    <div id="tutorial-overlay" class="tutorial-overlay" role="dialog" aria-labelledby="tutorial-title">
+        <div class="tutorial-content">
+            <h3 id="tutorial-title">🎮 Welcome to 6561!</h3>
+            <p>A puzzle game where you merge three identical numbers to reach 6561.</p>
+            <ul class="tutorial-tips">
+                <li>🎯 <strong>Goal:</strong> Create the 6561 tile!</li>
+                <li>🔢 <strong>Merge:</strong> 3 identical numbers → next power of 3</li>
+                <li>⌨️ <strong>Controls:</strong> Arrow keys, WASD, or swipe</li>
+                <li>↶ <strong>Undo:</strong> Press Ctrl+Z or tap the Undo button</li>
+                <li>🔥 <strong>Combo:</strong> Consecutive merges build combos for bonus points!</li>
+                <li>⏱️ <strong>Stats:</strong> Track your moves, time, and win rate!</li>
+            </ul>
+            <button class="restart-btn" id="btn-close-tutorial">Got it!</button>
+        </div>
+    </div>
+
+    <!-- 设置面板 -->
+    <div id="settings-overlay" class="settings-overlay" role="dialog" aria-labelledby="settings-title">
+        <div class="settings-content">
+            <h3 id="settings-title">⚙️ Settings</h3>
+            <div class="settings-section">
+                <h4>Display</h4>
+                <div class="setting-item">
+                    <span>Theme</span>
+                    <button class="btn" id="btn-theme-settings">🌙 Dark</button>
+                </div>
+                <div class="setting-item">
+                    <span>Reduced Motion</span>
+                    <span id="reduced-motion-status">Auto</span>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h4>Sound</h4>
+                <div class="setting-item">
+                    <span>Sound Effects</span>
+                    <button class="btn" id="btn-sound-settings">🔊 On</button>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h4>Tutorial</h4>
+                <button class="btn btn-secondary" id="btn-reset-tutorial">Show Tutorial Again</button>
+            </div>
+            <button class="restart-btn" id="btn-close-settings">Close</button>
+        </div>
+    </div>
+
+    <!-- 统计面板 -->
+    <div id="stats-overlay" class="stats-overlay" role="dialog" aria-labelledby="stats-title">
+        <div class="stats-content">
+            <h3 id="stats-title">📊 Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-games-played">0</div>
+                    <div class="stat-label">Games Played</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-games-won">0</div>
+                    <div class="stat-label">Games Won</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-win-rate">0%</div>
+                    <div class="stat-label">Win Rate</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-best-score">0</div>
+                    <div class="stat-label">Best Score</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-max-combo">0</div>
+                    <div class="stat-label">Max Combo</div>
+                </div>
+            </div>
+            <button class="restart-btn" id="btn-close-stats">Close</button>
+        </div>
+    </div>
+
+    <!-- 更新提示 -->
+    <div id="update-notification" class="update-notification" role="alert">
+        <span>A new version is available!</span>
+        <div class="notification-buttons">
+            <button class="btn" id="btn-reload-update">Refresh</button>
+            <button class="btn" id="btn-dismiss-update">Later</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
 </body>
 </html>

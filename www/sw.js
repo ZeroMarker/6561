@@ -1,4 +1,4 @@
-const CACHE_NAME = '6561-v2';
+const CACHE_NAME = '6561-v3';
 const ASSETS = [
   '/',
   '/index.html',
@@ -34,27 +34,23 @@ self.addEventListener('activate', (e) => {
 
 // 缓存策略：缓存优先，网络更新
 self.addEventListener('fetch', (e) => {
-  // 跳过非 GET 请求
   if (e.request.method !== 'GET') return;
-  
-  // 跳过 Chrome 扩展和 cross-origin 请求
   if (!e.request.url.startsWith(self.location.origin)) return;
-  
+
   e.respondWith(
     caches.match(e.request).then((cachedResponse) => {
-      // 返回缓存或 fetch 网络
       const fetchPromise = fetch(e.request).then((networkResponse) => {
-        // 缓存新的响应
-        const responseClone = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(e.request, responseClone);
-        });
+        if (networkResponse && networkResponse.status === 200) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(e.request, responseClone);
+          });
+        }
         return networkResponse;
       }).catch(() => {
-        // 网络失败，返回缓存（如果有）
         return cachedResponse;
       });
-      
+
       return cachedResponse || fetchPromise;
     })
   );

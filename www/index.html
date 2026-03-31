@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#776e65">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Merge three identical numbers to reach 6561! A variant of 2048.">
     <title>6561</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -12,27 +15,57 @@
 <body>
     <div class="game-container">
         <h1>6561</h1>
-        <div>
-            <div id="score">0</div>
-            <div id="best">0</div>
+        
+        <div class="header-row">
+            <div class="score-container">
+                <div id="score">0</div>
+                <div id="best">0</div>
+            </div>
         </div>
+        
+        <div class="controls-row">
+            <button class="btn" id="btn-undo" title="Undo (Ctrl+Z)">↶ Undo</button>
+            <button class="btn" id="btn-restart-main">🔄 New Game</button>
+            <button class="btn btn-install" id="btn-install" style="display:none;">📲 Install</button>
+        </div>
+        
         <div id="game">
             <div id="overlay-win" class="overlay">
-                <h2>You Win!</h2>
+                <h2>🎉 You Win!</h2>
                 <p>Reached 6561!</p>
-                <button class="restart-btn" id="btn-keep-playing">Keep Playing</button>
-                <button class="restart-btn" id="btn-restart-win">Restart</button>
+                <div class="overlay-buttons">
+                    <button class="restart-btn" id="btn-keep-playing">Keep Playing</button>
+                    <button class="restart-btn" id="btn-restart-win">Restart</button>
+                </div>
             </div>
             <div id="overlay-gameover" class="overlay">
-                <h2>Game Over!</h2>
-                <p>Try again?</p>
-                <button class="restart-btn" id="btn-restart-lose">Restart</button>
+                <h2>😢 Game Over!</h2>
+                <p>Score: <span id="final-score">0</span></p>
+                <div class="overlay-buttons">
+                    <button class="restart-btn" id="btn-restart-lose">Try Again</button>
+                </div>
             </div>
         </div>
+        
         <div id="instructions">
-            Use arrow keys / WASD or swipe<br>
-            Merge three identical numbers (3 threes→9, 3 nines→27, ..., up to 6561)<br>
-            Reach 6561 to win! Continue for higher scores
+            <strong>How to play:</strong> Arrow keys / WASD or swipe to move tiles.<br>
+            Merge <strong>three identical numbers</strong> (3+3+3→9, 9+9+9→27, ... →6561)<br>
+            <strong>Tip:</strong> Press Ctrl+Z or click Undo to reverse a move.
+        </div>
+    </div>
+
+    <!-- 新手引导 -->
+    <div id="tutorial-overlay" class="tutorial-overlay">
+        <div class="tutorial-content">
+            <h3>🎮 Welcome to 6561!</h3>
+            <p>A puzzle game where you merge three identical numbers to reach 6561.</p>
+            <ul class="tutorial-tips">
+                <li>🎯 <strong>Goal:</strong> Create the 6561 tile!</li>
+                <li>🔢 <strong>Merge:</strong> 3 identical numbers → next power of 3</li>
+                <li>⌨️ <strong>Controls:</strong> Arrow keys, WASD, or swipe</li>
+                <li>↶ <strong>Undo:</strong> Press Ctrl+Z or tap the Undo button</li>
+            </ul>
+            <button class="restart-btn" id="btn-close-tutorial">Got it!</button>
         </div>
     </div>
 
