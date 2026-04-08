@@ -2,7 +2,7 @@ class SensorController {
     constructor(game, onMove) {
         this.game = game;
         this.onMove = onMove;
-        this.threshold = 8; // 加速度阈值（摇一摇力度）
+        this.threshold = 15; // 加速度阈值（需要较大力度摇动）
         this.lastMoveTime = 0;
         this.moveCooldown = 500; // 冷却时间（毫秒）
         this.isListening = false;
