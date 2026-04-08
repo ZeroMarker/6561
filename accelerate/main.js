@@ -4,7 +4,6 @@ class GameManager {
         this.sensor = new SensorController(this.game, (direction) => {
             this.handleMove(direction);
         });
-        this.testMode = false;
         this.init();
     }
 
@@ -110,18 +109,6 @@ class GameManager {
         this.render();
     }
 
-    toggleTestMode() {
-        this.testMode = !this.testMode;
-        const btn = document.getElementById('test-mode');
-        if (this.testMode) {
-            btn.textContent = '退出测试模式';
-            btn.style.background = '#f67c5f';
-        } else {
-            btn.textContent = '键盘测试模式';
-            btn.style.background = '#8f7a66';
-        }
-    }
-
     updateSensorStatus(message, connected) {
         const statusText = document.getElementById('statusText');
         const statusDiv = document.getElementById('sensorStatus');
@@ -148,83 +135,10 @@ class GameManager {
             }
         });
 
-        // 测试模式按钮
-        document.getElementById('test-mode').addEventListener('click', () => {
-            this.toggleTestMode();
-        });
-
-        // 键盘控制
-        document.addEventListener('keydown', (e) => {
-            if (!this.testMode) return;
-
-            switch (e.key) {
-                case 'ArrowUp':
-                    e.preventDefault();
-                    this.handleMove('up');
-                    break;
-                case 'ArrowDown':
-                    e.preventDefault();
-                    this.handleMove('down');
-                    break;
-                case 'ArrowLeft':
-                    e.preventDefault();
-                    this.handleMove('left');
-                    break;
-                case 'ArrowRight':
-                    e.preventDefault();
-                    this.handleMove('right');
-                    break;
-            }
-        });
-
-        // 触摸滑动控制
-        let touchStartX = 0;
-        let touchStartY = 0;
-
-        document.addEventListener('touchstart', (e) => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-        }, { passive: true });
-
-        document.addEventListener('touchend', (e) => {
-            const touchEndX = e.changedTouches[0].clientX;
-            const touchEndY = e.changedTouches[0].clientY;
-
-            const diffX = touchEndX - touchStartX;
-            const diffY = touchEndY - touchStartY;
-
-            const minSwipeDistance = 50;
-
-            if (Math.abs(diffX) < minSwipeDistance && Math.abs(diffY) < minSwipeDistance) {
-                return;
-            }
-
-            if (Math.abs(diffX) > Math.abs(diffY)) {
-                // 水平滑动
-                if (diffX > 0) {
-                    this.handleMove('right');
-                } else {
-                    this.handleMove('left');
-                }
-            } else {
-                // 垂直滑动
-                if (diffY > 0) {
-                    this.handleMove('down');
-                } else {
-                    this.handleMove('up');
-                }
-            }
-        }, { passive: true });
-
         // 窗口大小改变时重新渲染
         window.addEventListener('resize', () => {
             this.render();
         });
-
-        // 防止页面滚动
-        document.body.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-        }, { passive: false });
     }
 }
 

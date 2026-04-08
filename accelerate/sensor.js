@@ -4,9 +4,10 @@ class SensorController {
         this.onMove = onMove;
         this.threshold = 15; // 加速度阈值（需要较大力度摇动）
         this.lastMoveTime = 0;
-        this.moveCooldown = 500; // 冷却时间（毫秒）
+        this.moveCooldown = 800; // 冷却时间（毫秒），防止多次触发
         this.isListening = false;
         this.hasPermission = false;
+        this.isProcessing = false; // 是否正在处理一次摇动
     }
 
     async requestPermission() {
@@ -113,7 +114,12 @@ class SensorController {
         if (!acceleration) return;
 
         const currentTime = Date.now();
+        
+        // 冷却时间内，忽略后续触发
         if (currentTime - this.lastMoveTime < this.moveCooldown) return;
+        
+        // 正在处理中，忽略
+        if (this.isProcessing) return;
 
         const { x, y, z } = acceleration;
 
@@ -124,6 +130,10 @@ class SensorController {
 
         // 只有当净加速度超过阈值时才触发
         if (netAccel < this.threshold) return;
+
+        // 标记为正在处理，防止同一次摇动触发多次
+        this.isProcessing = true;
+        this.lastMoveTime = currentTime;
 
         // 判断主要移动方向
         let direction = null;
@@ -145,13 +155,17 @@ class SensorController {
         }
 
         if (direction) {
-            this.lastMoveTime = currentTime;
             this.onMove(direction);
             
             if (navigator.vibrate) {
                 navigator.vibrate(50);
             }
         }
+
+        // 延迟重置处理状态，确保一次摇动只触发一次
+        setTimeout(() => {
+            this.isProcessing = false;
+        }, 300);
     }
 
     stopListening() {
