@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>2048 - 加速度传感器版</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>2048</h1>
+            <div class="score-container">
+                <div class="score-label">分数</div>
+                <div class="score-value" id="score">0</div>
+            </div>
+        </div>
+        
+        <div class="game-description">
+            <p>📱 晃动手机控制方向！</p>
+            <button id="requestPermission" class="btn">授权传感器权限</button>
+            <div id="sensorStatus" class="sensor-status">
+                <span id="statusText">状态: 未连接</span>
+            </div>
+        </div>
+
+        <div class="game-container">
+            <div class="grid-container" id="grid-container">
+                <!-- 16个格子将由JS生成 -->
+            </div>
+            <div class="tile-container" id="tile-container">
+                <!-- 动态生成的方块 -->
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="new-game" class="btn">新游戏</button>
+            <button id="test-mode" class="btn">键盘测试模式</button>
+        </div>
+
+        <div class="instructions">
+            <h3>游戏说明</h3>
+            <ul>
+                <li>📱 倾斜手机移动方块</li>
+                <li>👆 支持触摸滑动</li>
+                <li>⌨️ 方向键控制（开启测试模式）</li>
+                <li>相同数字合并，达到 2048 获胜！</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+    <script src="sensor.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
