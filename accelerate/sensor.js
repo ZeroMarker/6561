@@ -2,9 +2,9 @@ class SensorController {
     constructor(game, onMove) {
         this.game = game;
         this.onMove = onMove;
-        this.threshold = 1.5; // 加速度阈值
+        this.threshold = 8; // 加速度阈值（摇一摇力度）
         this.lastMoveTime = 0;
-        this.moveCooldown = 300; // 冷却时间（毫秒）
+        this.moveCooldown = 500; // 冷却时间（毫秒）
         this.isListening = false;
         this.hasPermission = false;
     }
@@ -76,20 +76,23 @@ class SensorController {
         const beta = event.beta;
         const gamma = event.gamma;
 
+        // 使用更大的角度阈值（需要明显倾斜）
+        const angleThreshold = 25;
+
         let direction = null;
 
         if (Math.abs(gamma) > Math.abs(beta)) {
             // 左右倾斜为主
-            if (gamma > 15) {
+            if (gamma > angleThreshold) {
                 direction = 'right';
-            } else if (gamma < -15) {
+            } else if (gamma < -angleThreshold) {
                 direction = 'left';
             }
         } else {
             // 前后倾斜为主
-            if (beta > 15) {
+            if (beta > angleThreshold) {
                 direction = 'down';
-            } else if (beta < -15) {
+            } else if (beta < -angleThreshold) {
                 direction = 'up';
             }
         }
@@ -107,29 +110,37 @@ class SensorController {
     handleMotion(event) {
         const acceleration = event.accelerationIncludingGravity;
         
-        if (!acceleration || !acceleration.x && !acceleration.y) return;
+        if (!acceleration) return;
 
         const currentTime = Date.now();
         if (currentTime - this.lastMoveTime < this.moveCooldown) return;
 
-        const { x, y } = acceleration;
+        const { x, y, z } = acceleration;
 
-        // 判断移动方向
+        // 计算总加速度（排除重力影响）
+        // 静止时加速度约为 9.8 m/s²（重力）
+        const totalAccel = Math.sqrt(x * x + y * y + z * z);
+        const netAccel = Math.abs(totalAccel - 9.8);
+
+        // 只有当净加速度超过阈值时才触发
+        if (netAccel < this.threshold) return;
+
+        // 判断主要移动方向
         let direction = null;
 
         if (Math.abs(x) > Math.abs(y)) {
-            // 水平移动
+            // 水平摇动
             if (x > this.threshold) {
-                direction = 'left'; // 手机向左倾斜 = 向左移动
+                direction = 'left';
             } else if (x < -this.threshold) {
-                direction = 'right'; // 手机向右倾斜 = 向右移动
+                direction = 'right';
             }
         } else {
-            // 垂直移动
+            // 垂直摇动
             if (y > this.threshold) {
-                direction = 'down'; // 手机向下倾斜 = 向下移动
+                direction = 'down';
             } else if (y < -this.threshold) {
-                direction = 'up'; // 手机向上倾斜 = 向上移动
+                direction = 'up';
             }
         }
 
@@ -137,7 +148,6 @@ class SensorController {
             this.lastMoveTime = currentTime;
             this.onMove(direction);
             
-            // 震动反馈（如果支持）
             if (navigator.vibrate) {
                 navigator.vibrate(50);
             }
