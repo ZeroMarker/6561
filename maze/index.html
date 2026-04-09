@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>迷宫滚珠</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .game-header h1 {
+            color: #00d9ff;
+            font-size: 28px;
+            text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+            margin-bottom: 5px;
+        }
+
+        .game-info {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .game-info span {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 15px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        #gameCanvas {
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 217, 255, 0.3);
+            background: #1e1e3f;
+        }
+
+        .game-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(145deg, #00d9ff, #00a8cc);
+            border: none;
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 217, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(0, 217, 255, 0.4);
+        }
+
+        .btn.secondary {
+            background: linear-gradient(145deg, #6c757d, #5a6268);
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: #fff;
+            max-width: 90%;
+            box-shadow: 0 0 50px rgba(0, 217, 255, 0.5);
+            border: 2px solid #00d9ff;
+        }
+
+        .modal-content h2 {
+            font-size: 32px;
+            margin-bottom: 15px;
+            color: #00d9ff;
+        }
+
+        .modal-content p {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .permission-tip {
+            color: #ffd700;
+            font-size: 14px;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        .level-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .level-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #00d9ff;
+            color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .level-btn.completed {
+            background: rgba(0, 217, 255, 0.3);
+            border-color: #00ff88;
+        }
+
+        .level-btn.current {
+            background: rgba(0, 217, 255, 0.5);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 217, 255, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(0, 217, 255, 0.8); }
+        }
+
+        .back-btn {
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-header">
+        <h1>🎮 迷宫滚珠</h1>
+        <div class="game-info">
+            <span>关卡: <strong id="levelDisplay">1</strong></span>
+            <span>时间: <strong id="timeDisplay">0s</strong></span>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="game-controls">
+        <button class="btn" id="startBtn">开始游戏</button>
+        <button class="btn secondary" id="levelBtn">选择关卡</button>
+    </div>
+
+    <div class="permission-tip" id="permissionTip" style="display: none;">
+        请点击"开始游戏"并允许访问设备运动传感器
+    </div>
+
+    <!-- 胜利弹窗 -->
+    <div class="modal" id="winModal">
+        <div class="modal-content">
+            <h2>🎉 恭喜通关!</h2>
+            <p>用时: <span id="winTime">0</span> 秒</p>
+            <button class="btn" id="nextLevelBtn">下一关</button>
+            <button class="btn secondary" id="winMenuBtn">菜单</button>
+        </div>
+    </div>
+
+    <!-- 关卡选择弹窗 -->
+    <div class="modal" id="levelModal">
+        <div class="modal-content">
+            <h2>选择关卡</h2>
+            <div class="level-selector" id="levelSelector"></div>
+            <button class="btn secondary back-btn" id="backFromLevels">返回</button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏配置
+        const CONFIG = {
+            LEVELS: [
+                { size: 5, holes: 3, traps: 0 },
+                { size: 6, holes: 5, traps: 2 },
+                { size: 7, holes: 8, traps: 3 },
+                { size: 8, holes: 10, traps: 5 },
+                { size: 9, holes: 12, traps: 6 },
+                { size: 10, holes: 15, traps: 8 },
+                { size: 10, holes: 18, traps: 10 },
+                { size: 12, holes: 20, traps: 12 },
+                { size: 12, holes: 25, traps: 15 },
+            ],
+            BALL_RADIUS: 8,
+            GRAVITY: 0.5,
+            FRICTION: 0.98,
+            MAX_SPEED: 6,
+        };
+
+        // 游戏状态
+        let gameState = {
+            currentLevel: 0,
+            completedLevels: new Set(),
+            maze: [],
+            ball: { x: 0, y: 0, vx: 0, vy: 0 },
+            holes: [],
+            traps: [],
+            exit: { x: 0, y: 0 },
+            isPlaying: false,
+            startTime: 0,
+            timer: null,
+            cellSize: 0,
+            mazeOffset: { x: 0, y: 0 },
+        };
+
+        // Canvas 设置
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function setupCanvas() {
+            const maxSize = Math.min(window.innerWidth - 30, window.innerHeight - 200);
+            const level = CONFIG.LEVELS[gameState.currentLevel];
+            const cellCount = level.size;
+            gameState.cellSize = Math.floor(maxSize / cellCount);
+            const canvasSize = gameState.cellSize * cellCount;
+            
+            canvas.width = canvasSize;
+            canvas.height = canvasSize;
+        }
+
+        // 迷宫生成 (递归回溯算法)
+        function generateMaze(size) {
+            const maze = [];
+            for (let y = 0; y < size; y++) {
+                maze[y] = [];
+                for (let x = 0; x < size; x++) {
+                    maze[y][x] = {
+                        x, y,
+                        walls: { top: true, right: true, bottom: true, left: true },
+                        visited: false
+                    };
+                }
+            }
+
+            const stack = [];
+            const start = maze[0][0];
+            start.visited = true;
+            stack.push(start);
+
+            const directions = [
+                { dx: 0, dy: -1, wall: 'top', opposite: 'bottom' },
+                { dx: 1, dy: 0, wall: 'right', opposite: 'left' },
+                { dx: 0, dy: 1, wall: 'bottom', opposite: 'top' },
+                { dx: -1, dy: 0, wall: 'left', opposite: 'right' },
+            ];
+
+            while (stack.length > 0) {
+                const current = stack[stack.length - 1];
+                const neighbors = [];
+
+                for (const dir of directions) {
+                    const nx = current.x + dir.dx;
+                    const ny = current.y + dir.dy;
+                    if (nx >= 0 && nx < size && ny >= 0 && ny < size && !maze[ny][nx].visited) {
+                        neighbors.push({ cell: maze[ny][nx], wall: dir.wall, opposite: dir.opposite });
+                    }
+                }
+
+                if (neighbors.length > 0) {
+                    const next = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    current.walls[next.wall] = false;
+                    next.cell.walls[next.opposite] = false;
+                    next.cell.visited = true;
+                    stack.push(next.cell);
+                } else {
+                    stack.pop();
+                }
+            }
+
+            return maze;
+        }
+
+        // 生成陷阱和出口
+        function generateGameElements(size, maze) {
+            const level = CONFIG.LEVELS[gameState.currentLevel];
+            const holes = [];
+            const traps = [];
+
+            // 生成陷阱位置 (避开起点和终点)
+            const validPositions = [];
+            for (let y = 1; y < size - 1; y++) {
+                for (let x = 1; x < size - 1; x++) {
+                    if (x !== 0 || y !== 0) {
+                        validPositions.push({ x, y });
+                    }
+                }
+            }
+
+            // 随机选择陷阱位置
+            const shuffled = validPositions.sort(() => Math.random() - 0.5);
+            for (let i = 0; i < level.holes && i < shuffled.length; i++) {
+                holes.push({ ...shuffled[i], type: 'hole' });
+            }
+            for (let i = level.holes; i < level.holes + level.traps && i < shuffled.length; i++) {
+                traps.push({ ...shuffled[i], type: 'trap' });
+            }
+
+            // 出口在右下角
+            const exit = { x: size - 1, y: size - 1 };
+
+            return { holes, traps, exit };
+        }
+
+        // 初始化游戏
+        function initGame() {
+            const level = CONFIG.LEVELS[gameState.currentLevel];
+            const size = level.size;
+
+            setupCanvas();
+            gameState.maze = generateMaze(size);
+            
+            const elements = generateGameElements(size, gameState.maze);
+            gameState.holes = elements.holes;
+            gameState.traps = elements.traps;
+            gameState.exit = elements.exit;
+
+            // 球从左上角开始
+            gameState.ball = {
+                x: gameState.cellSize / 2,
+                y: gameState.cellSize / 2,
+                vx: 0,
+                vy: 0
+            };
+
+            updateDisplay();
+        }
+
+        // 绘制迷宫
+        function drawMaze() {
+            const { cellSize, maze, holes, traps, exit } = gameState;
+            const size = maze.length;
+
+            // 绘制背景
+            ctx.fillStyle = '#2a2a4a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制陷阱和出口
+            for (const hole of holes) {
+                ctx.fillStyle = '#333';
+                ctx.beginPath();
+                ctx.arc(
+                    hole.x * cellSize + cellSize / 2,
+                    hole.y * cellSize + cellSize / 2,
+                    cellSize / 3,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fill();
+                
+                ctx.strokeStyle = '#ff4444';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            for (const trap of traps) {
+                ctx.fillStyle = '#ff6b6b';
+                ctx.fillRect(
+                    trap.x * cellSize + cellSize / 4,
+                    trap.y * cellSize + cellSize / 4,
+                    cellSize / 2,
+                    cellSize / 2
+                );
+            }
+
+            // 绘制出口
+            ctx.fillStyle = '#00ff88';
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#00ff88';
+            ctx.fillRect(
+                exit.x * cellSize + cellSize / 4,
+                exit.y * cellSize + cellSize / 4,
+                cellSize / 2,
+                cellSize / 2
+            );
+            ctx.shadowBlur = 0;
+
+            // 绘制墙壁
+            ctx.strokeStyle = '#00d9ff';
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = '#00d9ff';
+
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const cell = maze[y][x];
+                    const px = x * cellSize;
+                    const py = y * cellSize;
+
+                    if (cell.walls.top) {
+                        ctx.beginPath();
+                        ctx.moveTo(px, py);
+                        ctx.lineTo(px + cellSize, py);
+                        ctx.stroke();
+                    }
+                    if (cell.walls.right) {
+                        ctx.beginPath();
+                        ctx.moveTo(px + cellSize, py);
+                        ctx.lineTo(px + cellSize, py + cellSize);
+                        ctx.stroke();
+                    }
+                    if (cell.walls.bottom) {
+                        ctx.beginPath();
+                        ctx.moveTo(px, py + cellSize);
+                        ctx.lineTo(px + cellSize, py + cellSize);
+                        ctx.stroke();
+                    }
+                    if (cell.walls.left) {
+                        ctx.beginPath();
+                        ctx.moveTo(px, py);
+                        ctx.lineTo(px, py + cellSize);
+                        ctx.stroke();
+                    }
+                }
+            }
+            ctx.shadowBlur = 0;
+        }
+
+        // 绘制滚珠
+        function drawBall() {
+            const { ball, cellSize } = gameState;
+            const radius = CONFIG.BALL_RADIUS;
+
+            // 滚珠阴影
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.arc(ball.x + 3, ball.y + 3, radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 滚珠渐变
+            const gradient = ctx.createRadialGradient(
+                ball.x - 3, ball.y - 3, 2,
+                ball.x, ball.y, radius
+            );
+            gradient.addColorStop(0, '#ffffff');
+            gradient.addColorStop(0.5, '#aaddff');
+            gradient.addColorStop(1, '#0066cc');
+
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 高光
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath();
+            ctx.arc(ball.x - 2, ball.y - 2, radius / 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // 碰撞检测
+        function checkCollision() {
+            const { ball, maze, cellSize, holes, traps, exit } = gameState;
+            const radius = CONFIG.BALL_RADIUS;
+
+            // 当前格子
+            const cellX = Math.floor(ball.x / cellSize);
+            const cellY = Math.floor(ball.y / cellSize);
+
+            if (cellX < 0 || cellX >= maze.length || cellY < 0 || cellY >= maze.length) {
+                return;
+            }
+
+            const cell = maze[cellY][cellX];
+            const cellLeft = cellX * cellSize;
+            const cellTop = cellY * cellSize;
+            const cellRight = cellLeft + cellSize;
+            const cellBottom = cellTop + cellSize;
+
+            // 墙壁碰撞
+            if (cell.walls.left && ball.x - radius < cellLeft) {
+                ball.x = cellLeft + radius;
+                ball.vx = -ball.vx * 0.3;
+            }
+            if (cell.walls.right && ball.x + radius > cellRight) {
+                ball.x = cellRight - radius;
+                ball.vx = -ball.vx * 0.3;
+            }
+            if (cell.walls.top && ball.y - radius < cellTop) {
+                ball.y = cellTop + radius;
+                ball.vy = -ball.vy * 0.3;
+            }
+            if (cell.walls.bottom && ball.y + radius > cellBottom) {
+                ball.y = cellBottom - radius;
+                ball.vy = -ball.vy * 0.3;
+            }
+
+            // 检查是否掉入陷阱
+            for (const hole of holes) {
+                const holeX = hole.x * cellSize + cellSize / 2;
+                const holeY = hole.y * cellSize + cellSize / 2;
+                const dist = Math.hypot(ball.x - holeX, ball.y - holeY);
+                if (dist < cellSize / 3) {
+                    resetBall();
+                    return;
+                }
+            }
+
+            // 检查是否碰到障碍陷阱
+            for (const trap of traps) {
+                const trapLeft = trap.x * cellSize + cellSize / 4;
+                const trapTop = trap.y * cellSize + cellSize / 4;
+                const trapRight = trapLeft + cellSize / 2;
+                const trapBottom = trapTop + cellSize / 2;
+
+                if (ball.x + radius > trapLeft && ball.x - radius < trapRight &&
+                    ball.y + radius > trapTop && ball.y - radius < trapBottom) {
+                    resetBall();
+                    return;
+                }
+            }
+
+            // 检查是否到达出口
+            const exitLeft = exit.x * cellSize + cellSize / 4;
+            const exitTop = exit.y * cellSize + cellSize / 4;
+            const exitRight = exitLeft + cellSize / 2;
+            const exitBottom = exitTop + cellSize / 2;
+
+            if (ball.x > exitLeft && ball.x < exitRight && ball.y > exitTop && ball.y < exitBottom) {
+                winGame();
+            }
+        }
+
+        // 重置球位置
+        function resetBall() {
+            gameState.ball = {
+                x: gameState.cellSize / 2,
+                y: gameState.cellSize / 2,
+                vx: 0,
+                vy: 0
+            };
+        }
+
+        // 更新球位置
+        function updateBall(tiltX, tiltY) {
+            if (!gameState.isPlaying) return;
+
+            const { ball } = gameState;
+
+            // 应用重力
+            ball.vx += tiltX * CONFIG.GRAVITY;
+            ball.vy += tiltY * CONFIG.GRAVITY;
+
+            // 限制最大速度
+            const speed = Math.hypot(ball.vx, ball.vy);
+            if (speed > CONFIG.MAX_SPEED) {
+                ball.vx = (ball.vx / speed) * CONFIG.MAX_SPEED;
+                ball.vy = (ball.vy / speed) * CONFIG.MAX_SPEED;
+            }
+
+            // 应用摩擦力
+            ball.vx *= CONFIG.FRICTION;
+            ball.vy *= CONFIG.FRICTION;
+
+            // 更新位置
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+
+            // 碰撞检测
+            checkCollision();
+        }
+
+        // 游戏循环
+        function gameLoop(tiltX, tiltY) {
+            updateBall(tiltX, tiltY);
+            
+            drawMaze();
+            drawBall();
+
+            if (gameState.isPlaying) {
+                requestAnimationFrame(() => gameLoop(currentTiltX, currentTiltY));
+            }
+        }
+
+        // 设备方向处理
+        let currentTiltX = 0;
+        let currentTiltY = 0;
+
+        function handleOrientation(event) {
+            const beta = event.beta;   // -180 到 180 (前后倾斜)
+            const gamma = event.gamma; // -90 到 90 (左右倾斜)
+
+            // 限制倾斜角度并归一化
+            currentTiltX = Math.max(-1, Math.min(1, gamma / 30));
+            currentTiltY = Math.max(-1, Math.min(1, beta / 30));
+        }
+
+        // 请求设备方向权限 (iOS 13+)
+        async function requestDeviceOrientation() {
+            if (typeof DeviceOrientationEvent !== 'undefined' && 
+                typeof DeviceOrientationEvent.requestPermission === 'function') {
+                try {
+                    const permission = await DeviceOrientationEvent.requestPermission();
+                    if (permission === 'granted') {
+                        window.addEventListener('deviceorientation', handleOrientation);
+                        return true;
+                    } else {
+                        alert('需要访问设备运动传感器才能玩游戏');
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('请求权限失败:', error);
+                    return false;
+                }
+            } else {
+                window.addEventListener('deviceorientation', handleOrientation);
+                return true;
+            }
+        }
+
+        // 显示更新
+        function updateDisplay() {
+            document.getElementById('levelDisplay').textContent = gameState.currentLevel + 1;
+        }
+
+        // 计时器
+        function startTimer() {
+            gameState.startTime = Date.now();
+            gameState.timer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+                document.getElementById('timeDisplay').textContent = elapsed + 's';
+            }, 100);
+        }
+
+        function stopTimer() {
+            if (gameState.timer) {
+                clearInterval(gameState.timer);
+                gameState.timer = null;
+            }
+        }
+
+        function getElapsedTime() {
+            return Math.floor((Date.now() - gameState.startTime) / 1000);
+        }
+
+        // 胜利处理
+        function winGame() {
+            gameState.isPlaying = false;
+            stopTimer();
+            gameState.completedLevels.add(gameState.currentLevel);
+
+            const time = getElapsedTime();
+            document.getElementById('winTime').textContent = time;
+            document.getElementById('winModal').classList.add('show');
+        }
+
+        // 开始游戏
+        async function startGame() {
+            document.getElementById('permissionTip').style.display = 'block';
+            
+            const granted = await requestDeviceOrientation();
+            if (granted || !DeviceOrientationEvent) {
+                initGame();
+                gameState.isPlaying = true;
+                document.getElementById('permissionTip').style.display = 'none';
+                document.getElementById('startBtn').textContent = '重新开始';
+                startTimer();
+                gameLoop(0, 0);
+            }
+        }
+
+        // 事件绑定
+        document.getElementById('startBtn').addEventListener('click', startGame);
+
+        document.getElementById('nextLevelBtn').addEventListener('click', () => {
+            document.getElementById('winModal').classList.remove('show');
+            if (gameState.currentLevel < CONFIG.LEVELS.length - 1) {
+                gameState.currentLevel++;
+                startGame();
+            } else {
+                alert('恭喜! 你已通关所有关卡!');
+            }
+        });
+
+        document.getElementById('winMenuBtn').addEventListener('click', () => {
+            document.getElementById('winModal').classList.remove('show');
+            document.getElementById('startBtn').textContent = '开始游戏';
+            stopTimer();
+            document.getElementById('timeDisplay').textContent = '0s';
+            gameState.isPlaying = false;
+        });
+
+        // 关卡选择
+        document.getElementById('levelBtn').addEventListener('click', () => {
+            const selector = document.getElementById('levelSelector');
+            selector.innerHTML = '';
+
+            CONFIG.LEVELS.forEach((level, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'level-btn';
+                btn.textContent = index + 1;
+
+                if (gameState.completedLevels.has(index)) {
+                    btn.classList.add('completed');
+                } else if (index === 0 || gameState.completedLevels.has(index - 1)) {
+                    btn.classList.add('current');
+                }
+
+                btn.addEventListener('click', () => {
+                    gameState.currentLevel = index;
+                    document.getElementById('levelModal').classList.remove('show');
+                    updateDisplay();
+                });
+
+                selector.appendChild(btn);
+            });
+
+            document.getElementById('levelModal').classList.add('show');
+        });
+
+        document.getElementById('backFromLevels').addEventListener('click', () => {
+            document.getElementById('levelModal').classList.remove('show');
+        });
+
+        // 键盘控制 (桌面端测试)
+        document.addEventListener('keydown', (e) => {
+            const speed = 0.5;
+            switch (e.key) {
+                case 'ArrowUp': currentTiltY = -speed; break;
+                case 'ArrowDown': currentTiltY = speed; break;
+                case 'ArrowLeft': currentTiltX = -speed; break;
+                case 'ArrowRight': currentTiltX = speed; break;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            switch (e.key) {
+                case 'ArrowUp':
+                case 'ArrowDown': currentTiltY = 0; break;
+                case 'ArrowLeft':
+                case 'ArrowRight': currentTiltX = 0; break;
+            }
+        });
+
+        // 初始化
+        setupCanvas();
+        window.addEventListener('resize', () => {
+            if (!gameState.isPlaying) {
+                setupCanvas();
+            }
+        });
+
+        // 绘制初始迷宫
+        initGame();
+        drawMaze();
+        drawBall();
+    </script>
+</body>
+</html>
