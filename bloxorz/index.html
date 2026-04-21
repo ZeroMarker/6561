@@ -1,44 +1,31 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bloxorz 游戏</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Bloxorz 3D</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
 </head>
 <body>
-    <div class="game-container">
-        <h1>Bloxorz</h1>
-        <div class="game-info">
-            <div class="info-item">
-                <span>关卡: </span>
-                <span id="level">1</span>
-            </div>
-            <div class="info-item">
-                <span>步数: </span>
-                <span id="moves">0</span>
-            </div>
-            <button id="resetBtn">重置关卡</button>
+    <div id="ui">
+        <div class="stats">
+            <div>Level: <span id="level-val">1</span></div>
+            <div>Moves: <span id="moves-val">0</span></div>
         </div>
-        <div class="game-board" id="gameBoard"></div>
         <div class="controls">
-            <div class="control-row">
-                <button id="upBtn" class="control-btn">↑</button>
-            </div>
-            <div class="control-row">
-                <button id="leftBtn" class="control-btn">←</button>
-                <button id="rightBtn" class="control-btn">→</button>
-            </div>
-            <div class="control-row">
-                <button id="downBtn" class="control-btn">↓</button>
-            </div>
-        </div>
-        <div class="instructions">
-            <p>使用方向键或按钮控制方块移动</p>
-            <p>目标: 让方块垂直立在终点孔上</p>
+            <button id="reset-btn">Reset Level</button>
+            <a href="../index.html" class="back-btn">Back to Home</a>
         </div>
     </div>
-    <div id="message" class="message hidden"></div>
+    <div id="game-container"></div>
+    <div id="overlay" class="hidden">
+        <h1 id="overlay-title">Level Complete!</h1>
+        <button id="next-btn">Next Level</button>
+    </div>
+
+    <script src="levels.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

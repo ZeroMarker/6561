@@ -1,419 +1,345 @@
-// 游戏配置
-const TILE_SIZE = 50;
-const GRID_OFFSET_X = 50;
-const GRID_OFFSET_Y = 50;
-
-// 方块状态
-const BlockState = {
-    STANDING: 'standing',  // 垂直站立 (1x1)
-    HORIZONTAL_X: 'horizontal_x',  // 水平沿X轴 (2x1)
-    HORIZONTAL_Y: 'horizontal_y'   // 水平沿Y轴 (1x2)
-};
-
-// 关卡设计
-const levels = [
-    // 关卡 1 - 经典第一关
-    {
-        grid: [
-            [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-            [1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-            [0, 0, 0, 0, 0, 1, 1, 0, 0, 0],
-            [0, 0, 0, 0, 0, 1, 1, 0, 0, 0]
-        ],
-        start: { x: 1, y: 1, state: BlockState.STANDING },
-        goal: { x: 3, y: 6 }
-    },
-    // 关卡 2
-    {
-        grid: [
-            [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
-            [1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-            [0, 0, 1, 1, 0, 0, 1, 1, 1, 1],
-            [0, 0, 1, 1, 0, 0, 1, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        ],
-        start: { x: 0, y: 0, state: BlockState.STANDING },
-        goal: { x: 8, y: 3 }
-    },
-    // 关卡 3
-    {
-        grid: [
-            [0, 0, 1, 1, 1, 1, 1, 0, 0, 0],
-            [0, 1, 1, 1, 1, 1, 1, 1, 0, 0],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [0, 1, 1, 1, 0, 1, 1, 1, 1, 1],
-            [0, 1, 1, 1, 0, 1, 1, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 1, 1, 1, 0],
-            [0, 0, 0, 0, 0, 0, 1, 1, 0, 0]
-        ],
-        start: { x: 5, y: 0, state: BlockState.STANDING },
-        goal: { x: 6, y: 7 }
-    }
-];
-
-class BloxorzGame {
+class Bloxorz {
     constructor() {
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setClearColor(0x1a1a1a);
+        this.renderer.shadowMap.enabled = true;
+        document.getElementById('game-container').appendChild(this.renderer.domElement);
+
         this.currentLevel = 0;
         this.moves = 0;
         this.block = null;
-        this.canvas = null;
-        this.ctx = null;
-        this.gameBoard = null;
-        this.isAnimating = false;
-        
-        this.init();
+        this.tiles = [];
+        this.isMoving = false;
+        this.gameState = 'playing';
+
+        // Block state: pos: {x, y}, state: 'vertical' | 'horizontal_x' | 'horizontal_y'
+        this.blockData = {
+            pos: { x: 0, y: 0 },
+            state: 'vertical'
+        };
+
+        this.initLights();
+        this.initLevel(this.currentLevel);
+        this.setupControls();
+        this.animate();
+
+        window.addEventListener('resize', () => this.onWindowResize());
     }
-    
-    init() {
-        this.gameBoard = document.getElementById('gameBoard');
-        this.setupCanvas();
-        this.loadLevel(this.currentLevel);
-        this.setupEventListeners();
+
+    initLights() {
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        this.scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(10, 20, 10);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 1024;
+        directionalLight.shadow.mapSize.height = 1024;
+        this.scene.add(directionalLight);
     }
-    
-    setupCanvas() {
-        const level = levels[this.currentLevel];
-        const rows = level.grid.length;
-        const cols = level.grid[0].length;
-        
-        const canvasWidth = cols * TILE_SIZE + GRID_OFFSET_X * 2;
-        const canvasHeight = rows * TILE_SIZE + GRID_OFFSET_Y * 2;
-        
-        this.canvas = document.createElement('canvas');
-        this.canvas.width = canvasWidth;
-        this.canvas.height = canvasHeight;
-        this.ctx = this.canvas.getContext('2d');
-        
-        this.gameBoard.innerHTML = '';
-        this.gameBoard.appendChild(this.canvas);
-    }
-    
-    loadLevel(levelIndex) {
-        if (levelIndex >= levels.length) {
-            this.showMessage('🎉 恭喜你通关了所有关卡！');
-            this.currentLevel = 0;
-        }
-        
-        this.currentLevel = levelIndex % levels.length;
-        const level = levels[this.currentLevel];
-        
+
+    initLevel(levelIndex) {
+        // Clear old level
+        if (this.block) this.scene.remove(this.block);
+        this.tiles.forEach(tile => this.scene.remove(tile));
+        this.tiles = [];
+
+        const level = LEVELS[levelIndex];
+        this.blockData.pos = { ...level.start };
+        this.blockData.state = 'vertical';
         this.moves = 0;
-        this.block = { ...level.start };
-        this.isAnimating = false;
-        
-        document.getElementById('level').textContent = this.currentLevel + 1;
-        document.getElementById('moves').textContent = this.moves;
-        
-        this.setupCanvas();
-        this.render();
-        this.hideMessage();
-    }
-    
-    setupEventListeners() {
-        // 键盘控制
-        document.addEventListener('keydown', (e) => {
-            if (this.isAnimating) return;
-            
-            switch(e.key) {
-                case 'ArrowUp':
-                    e.preventDefault();
-                    this.moveBlock('up');
-                    break;
-                case 'ArrowDown':
-                    e.preventDefault();
-                    this.moveBlock('down');
-                    break;
-                case 'ArrowLeft':
-                    e.preventDefault();
-                    this.moveBlock('left');
-                    break;
-                case 'ArrowRight':
-                    e.preventDefault();
-                    this.moveBlock('right');
-                    break;
-                case 'r':
-                case 'R':
-                    this.resetLevel();
-                    break;
-            }
-        });
-        
-        // 按钮控制
-        document.getElementById('upBtn').addEventListener('click', () => this.moveBlock('up'));
-        document.getElementById('downBtn').addEventListener('click', () => this.moveBlock('down'));
-        document.getElementById('leftBtn').addEventListener('click', () => this.moveBlock('left'));
-        document.getElementById('rightBtn').addEventListener('click', () => this.moveBlock('right'));
-        document.getElementById('resetBtn').addEventListener('click', () => this.resetLevel());
-    }
-    
-    moveBlock(direction) {
-        if (this.isAnimating) return;
-        
-        const level = levels[this.currentLevel];
-        const oldBlock = { ...this.block };
-        let newBlock = { ...this.block };
-        
-        // 根据当前状态和移动方向计算新位置
-        switch(this.block.state) {
-            case BlockState.STANDING:
-                newBlock = this.moveFromStanding(direction);
-                break;
-            case BlockState.HORIZONTAL_X:
-                newBlock = this.moveFromHorizontalX(direction);
-                break;
-            case BlockState.HORIZONTAL_Y:
-                newBlock = this.moveFromHorizontalY(direction);
-                break;
-        }
-        
-        // 检查是否有效
-        if (this.isValidPosition(newBlock)) {
-            this.block = newBlock;
-            this.moves++;
-            document.getElementById('moves').textContent = this.moves;
-            
-            // 检查是否掉落
-            if (!this.isOnPlatform()) {
-                this.showMessage('💥 方块掉落了！');
-                setTimeout(() => this.resetLevel(), 1500);
-                return;
-            }
-            
-            this.render();
-            
-            // 检查是否获胜
-            if (this.checkWin()) {
-                this.showMessage('🎉 关卡完成！');
-                setTimeout(() => {
-                    this.hideMessage();
-                    this.loadLevel(this.currentLevel + 1);
-                }, 2000);
-            }
-        }
-    }
-    
-    moveFromStanding(direction) {
-        const { x, y } = this.block;
-        
-        switch(direction) {
-            case 'up':
-                return { x, y: y - 1, state: BlockState.HORIZONTAL_Y };
-            case 'down':
-                return { x, y: y + 1, state: BlockState.HORIZONTAL_Y };
-            case 'left':
-                return { x: x - 1, y, state: BlockState.HORIZONTAL_X };
-            case 'right':
-                return { x: x + 1, y, state: BlockState.HORIZONTAL_X };
-        }
-    }
-    
-    moveFromHorizontalX(direction) {
-        const { x, y } = this.block;
-        
-        switch(direction) {
-            case 'up':
-                return { x: x - 1, y: y - 1, state: BlockState.HORIZONTAL_X };
-            case 'down':
-                return { x: x + 1, y: y + 1, state: BlockState.HORIZONTAL_X };
-            case 'left':
-                return { x: x - 2, y, state: BlockState.STANDING };
-            case 'right':
-                return { x: x + 1, y, state: BlockState.STANDING };
-        }
-    }
-    
-    moveFromHorizontalY(direction) {
-        const { x, y } = this.block;
-        
-        switch(direction) {
-            case 'up':
-                return { x, y: y - 2, state: BlockState.STANDING };
-            case 'down':
-                return { x, y: y + 1, state: BlockState.STANDING };
-            case 'left':
-                return { x: x - 1, y: y - 1, state: BlockState.HORIZONTAL_Y };
-            case 'right':
-                return { x: x + 1, y: y + 1, state: BlockState.HORIZONTAL_Y };
-        }
-    }
-    
-    isValidPosition(block) {
-        const level = levels[this.currentLevel];
-        const grid = level.grid;
-        const rows = grid.length;
-        const cols = grid[0].length;
-        
-        // 获取方块占据的所有格子
-        const occupiedTiles = this.getOccupiedTiles(block);
-        
-        // 检查每个格子是否在平台范围内
-        for (const tile of occupiedTiles) {
-            if (tile.x < 0 || tile.x >= cols || tile.y < 0 || tile.y >= rows) {
-                return false;
-            }
-        }
-        
-        return true;
-    }
-    
-    isOnPlatform() {
-        const level = levels[this.currentLevel];
-        const grid = level.grid;
-        const occupiedTiles = this.getOccupiedTiles(this.block);
-        
-        // 检查每个格子是否在平台上（值为1）
-        for (const tile of occupiedTiles) {
-            if (grid[tile.y][tile.x] !== 1) {
-                return false;
-            }
-        }
-        
-        return true;
-    }
-    
-    getOccupiedTiles(block) {
-        const tiles = [];
-        
-        switch(block.state) {
-            case BlockState.STANDING:
-                tiles.push({ x: block.x, y: block.y });
-                break;
-            case BlockState.HORIZONTAL_X:
-                tiles.push({ x: block.x, y: block.y });
-                tiles.push({ x: block.x + 1, y: block.y });
-                break;
-            case BlockState.HORIZONTAL_Y:
-                tiles.push({ x: block.x, y: block.y });
-                tiles.push({ x: block.x, y: block.y + 1 });
-                break;
-        }
-        
-        return tiles;
-    }
-    
-    checkWin() {
-        const level = levels[this.currentLevel];
-        return (
-            this.block.state === BlockState.STANDING &&
-            this.block.x === level.goal.x &&
-            this.block.y === level.goal.y
-        );
-    }
-    
-    resetLevel() {
-        this.loadLevel(this.currentLevel);
-    }
-    
-    render() {
-        const level = levels[this.currentLevel];
-        const grid = level.grid;
-        const rows = grid.length;
-        const cols = grid[0].length;
-        
-        const ctx = this.ctx;
-        
-        // 清空画布
-        ctx.fillStyle = '#1a1a2e';
-        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        // 绘制平台
-        for (let y = 0; y < rows; y++) {
-            for (let x = 0; x < cols; x++) {
-                const tileX = GRID_OFFSET_X + x * TILE_SIZE;
-                const tileY = GRID_OFFSET_Y + y * TILE_SIZE;
-                
-                if (grid[y][x] === 1) {
-                    // 绘制平台方块
-                    const gradient = ctx.createLinearGradient(tileX, tileY, tileX, tileY + TILE_SIZE);
-                    gradient.addColorStop(0, '#4a4e69');
-                    gradient.addColorStop(1, '#2d3142');
-                    ctx.fillStyle = gradient;
-                    ctx.fillRect(tileX + 2, tileY + 2, TILE_SIZE - 4, TILE_SIZE - 4);
-                    
-                    // 边框
-                    ctx.strokeStyle = '#6a6e89';
-                    ctx.lineWidth = 1;
-                    ctx.strokeRect(tileX + 2, tileY + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+        this.updateUI();
+
+        // Create Grid
+        const tileGeometry = new THREE.BoxGeometry(0.95, 0.2, 0.95);
+        const tileMaterial = new THREE.MeshPhongMaterial({ color: 0x444444 });
+        const targetMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000, transparent: true, opacity: 0.5 });
+
+        for (let y = 0; y < level.grid.length; y++) {
+            for (let x = 0; x < level.grid[y].length; x++) {
+                if (level.grid[y][x] > 0) {
+                    const material = level.grid[y][x] === 2 ? targetMaterial : tileMaterial;
+                    const tile = new THREE.Mesh(tileGeometry, material);
+                    tile.position.set(x, -0.1, y);
+                    tile.receiveShadow = true;
+                    this.scene.add(tile);
+                    this.tiles.push(tile);
                 }
             }
         }
-        
-        // 绘制终点
-        const goalX = GRID_OFFSET_X + level.goal.x * TILE_SIZE;
-        const goalY = GRID_OFFSET_Y + level.goal.y * TILE_SIZE;
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(goalX + 5, goalY + 5, TILE_SIZE - 10, TILE_SIZE - 10);
-        ctx.strokeStyle = '#ff6b6b';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(goalX + 5, goalY + 5, TILE_SIZE - 10, TILE_SIZE - 10);
-        
-        // 绘制玩家方块
-        this.renderBlock();
+
+        // Create Block
+        const blockGeometry = new THREE.BoxGeometry(1, 2, 1);
+        const blockMaterial = new THREE.MeshPhongMaterial({ color: 0xcccccc });
+        this.block = new THREE.Mesh(blockGeometry, blockMaterial);
+        this.block.castShadow = true;
+        this.updateBlockPosition();
+        this.scene.add(this.block);
+
+        // Center camera
+        this.camera.position.set(level.grid[0].length / 2, 8, level.grid.length + 5);
+        this.camera.lookAt(level.grid[0].length / 2, 0, level.grid.length / 2);
     }
-    
-    renderBlock() {
-        const ctx = this.ctx;
-        const occupiedTiles = this.getOccupiedTiles(this.block);
-        
-        // 根据方块状态绘制
-        let blockX, blockY, blockWidth, blockHeight;
-        
-        switch(this.block.state) {
-            case BlockState.STANDING:
-                blockX = GRID_OFFSET_X + this.block.x * TILE_SIZE + 5;
-                blockY = GRID_OFFSET_Y + this.block.y * TILE_SIZE + 5;
-                blockWidth = TILE_SIZE - 10;
-                blockHeight = TILE_SIZE - 10;
-                break;
-            case BlockState.HORIZONTAL_X:
-                blockX = GRID_OFFSET_X + this.block.x * TILE_SIZE + 5;
-                blockY = GRID_OFFSET_Y + this.block.y * TILE_SIZE + 10;
-                blockWidth = TILE_SIZE * 2 - 10;
-                blockHeight = TILE_SIZE - 20;
-                break;
-            case BlockState.HORIZONTAL_Y:
-                blockX = GRID_OFFSET_X + this.block.x * TILE_SIZE + 10;
-                blockY = GRID_OFFSET_Y + this.block.y * TILE_SIZE + 5;
-                blockWidth = TILE_SIZE - 20;
-                blockHeight = TILE_SIZE * 2 - 10;
-                break;
+
+    updateBlockPosition() {
+        const { x, y } = this.blockData.pos;
+        if (this.blockData.state === 'vertical') {
+            this.block.scale.set(1, 1, 1);
+            this.block.rotation.set(0, 0, 0);
+            this.block.position.set(x, 1, y);
+        } else if (this.blockData.state === 'horizontal_x') {
+            this.block.scale.set(1, 1, 1);
+            this.block.rotation.set(0, 0, Math.PI / 2);
+            this.block.position.set(x + 0.5, 0.5, y);
+        } else if (this.blockData.state === 'horizontal_y') {
+            this.block.scale.set(1, 1, 1);
+            this.block.rotation.set(Math.PI / 2, 0, 0);
+            this.block.position.set(x, 0.5, y + 0.5);
         }
-        
-        // 绘制3D效果
-        const gradient = ctx.createLinearGradient(blockX, blockY, blockX, blockY + blockHeight);
-        gradient.addColorStop(0, '#ffd93d');
-        gradient.addColorStop(0.5, '#ff9f1c');
-        gradient.addColorStop(1, '#f77f00');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(blockX, blockY, blockWidth, blockHeight);
-        
-        // 边框
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(blockX, blockY, blockWidth, blockHeight);
     }
-    
-    showMessage(text) {
-        const messageEl = document.getElementById('message');
-        messageEl.textContent = text;
-        messageEl.classList.remove('hidden');
+
+    move(direction) {
+        if (this.isMoving || this.gameState !== 'playing') return;
+
+        const prevPos = { ...this.blockData.pos };
+        const prevState = this.blockData.state;
+        let nextPos = { ...this.blockData.pos };
+        let nextState = this.blockData.state;
+
+        // Calculate next state and position
+        if (direction === 'up') {
+            if (prevState === 'vertical') {
+                nextPos.y -= 2;
+                nextState = 'horizontal_y';
+            } else if (prevState === 'horizontal_x') {
+                nextPos.y -= 1;
+            } else if (prevState === 'horizontal_y') {
+                nextPos.y -= 1;
+                nextState = 'vertical';
+            }
+        } else if (direction === 'down') {
+            if (prevState === 'vertical') {
+                nextPos.y += 1;
+                nextState = 'horizontal_y';
+            } else if (prevState === 'horizontal_x') {
+                nextPos.y += 1;
+            } else if (prevState === 'horizontal_y') {
+                nextPos.y += 2;
+                nextState = 'vertical';
+            }
+        } else if (direction === 'left') {
+            if (prevState === 'vertical') {
+                nextPos.x -= 2;
+                nextState = 'horizontal_x';
+            } else if (prevState === 'horizontal_x') {
+                nextPos.x -= 1;
+                nextState = 'vertical';
+            } else if (prevState === 'horizontal_y') {
+                nextPos.x -= 1;
+            }
+        } else if (direction === 'right') {
+            if (prevState === 'vertical') {
+                nextPos.x += 1;
+                nextState = 'horizontal_x';
+            } else if (prevState === 'horizontal_x') {
+                nextPos.x += 2;
+                nextState = 'vertical';
+            } else if (prevState === 'horizontal_y') {
+                nextPos.x += 1;
+            }
+        }
+
+        this.animateMove(direction, nextPos, nextState);
     }
-    
-    hideMessage() {
-        const messageEl = document.getElementById('message');
-        messageEl.classList.add('hidden');
+
+    animateMove(direction, nextPos, nextState) {
+        if (this.isMoving) return;
+        this.isMoving = true;
+        this.moves++;
+        this.updateUI();
+
+        const startPos = this.block.position.clone();
+        const startQuat = this.block.quaternion.clone();
+
+        // 1. Calculate Pivot and Axis
+        let pivot = new THREE.Vector3();
+        let axis = new THREE.Vector3();
+        const halfH = this.blockData.state === 'vertical' ? 1 : 0.5;
+        const halfW = 0.5;
+
+        if (direction === 'right') {
+            axis.set(0, 0, -1);
+            const offset = this.blockData.state === 'horizontal_x' ? 1.5 : 0.5;
+            pivot.set(startPos.x + offset, 0, startPos.z);
+        } else if (direction === 'left') {
+            axis.set(0, 0, 1);
+            const offset = this.blockData.state === 'horizontal_x' ? 0.5 : 0.5;
+            pivot.set(startPos.x - offset, 0, startPos.z);
+        } else if (direction === 'up') {
+            axis.set(-1, 0, 0);
+            const offset = this.blockData.state === 'horizontal_y' ? 0.5 : 0.5;
+            pivot.set(startPos.x, 0, startPos.z - offset);
+        } else if (direction === 'down') {
+            axis.set(1, 0, 0);
+            const offset = this.blockData.state === 'horizontal_y' ? 1.5 : 0.5;
+            pivot.set(startPos.x, 0, startPos.z + offset);
+        }
+
+        // 2. Animate using a proxy object for progress
+        const proxy = { t: 0 };
+        new TWEEN.Tween(proxy)
+            .to({ t: Math.PI / 2 }, 300)
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .onUpdate(() => {
+                // Reset to start
+                this.block.position.copy(startPos);
+                this.block.quaternion.copy(startQuat);
+
+                // Rotate around pivot
+                const q = new THREE.Quaternion().setFromAxisAngle(axis, proxy.t);
+                
+                // Position offset
+                this.block.position.sub(pivot);
+                this.block.position.applyQuaternion(q);
+                this.block.position.add(pivot);
+
+                // Rotation offset
+                this.block.quaternion.premultiply(q);
+            })
+            .onComplete(() => {
+                this.blockData.pos = nextPos;
+                this.blockData.state = nextState;
+                this.isMoving = false;
+                
+                // Snap to exact position to avoid floating point drift
+                const finalVisualPos = this.getVisualPosition(nextPos, nextState);
+                this.block.position.set(finalVisualPos.x, finalVisualPos.y, finalVisualPos.z);
+                const finalVisualRot = this.getVisualRotation(nextState);
+                this.block.rotation.set(finalVisualRot.x, finalVisualRot.y, finalVisualRot.z);
+
+                this.checkGameState();
+            })
+            .start();
+    }
+
+    getVisualPosition(pos, state) {
+        if (state === 'vertical') return { x: pos.x, y: 1, z: pos.y };
+        if (state === 'horizontal_x') return { x: pos.x + 0.5, y: 0.5, z: pos.y };
+        if (state === 'horizontal_y') return { x: pos.x, y: 0.5, z: pos.y + 0.5 };
+    }
+
+    getVisualRotation(state) {
+        if (state === 'vertical') return { x: 0, y: 0, z: 0 };
+        if (state === 'horizontal_x') return { x: 0, y: 0, z: Math.PI / 2 };
+        if (state === 'horizontal_y') return { x: Math.PI / 2, y: 0, z: 0 };
+    }
+
+    checkGameState() {
+        const grid = LEVELS[this.currentLevel].grid;
+        const { x, y } = this.blockData.pos;
+        const state = this.blockData.state;
+
+        const isTile = (tx, ty) => {
+            if (ty < 0 || ty >= grid.length || tx < 0 || tx >= grid[0].length) return 0;
+            return grid[ty][tx];
+        };
+
+        let onTarget = false;
+        let fallen = false;
+
+        if (state === 'vertical') {
+            const tile = isTile(x, y);
+            if (tile === 0) fallen = true;
+            if (tile === 2) onTarget = true;
+        } else if (state === 'horizontal_x') {
+            if (isTile(x, y) === 0 || isTile(x + 1, y) === 0) fallen = true;
+        } else if (state === 'horizontal_y') {
+            if (isTile(x, y) === 0 || isTile(x, y + 1) === 0) fallen = true;
+        }
+
+        if (onTarget) {
+            this.win();
+        } else if (fallen) {
+            this.fail();
+        }
+    }
+
+    win() {
+        this.gameState = 'win';
+        document.getElementById('overlay').classList.remove('hidden');
+        document.getElementById('overlay-title').textContent = 'Level Complete!';
+        new TWEEN.Tween(this.block.position)
+            .to({ y: -1 }, 500)
+            .start();
+    }
+
+    fail() {
+        this.gameState = 'fail';
+        new TWEEN.Tween(this.block.position)
+            .to({ y: -5 }, 500)
+            .onComplete(() => {
+                this.initLevel(this.currentLevel);
+                this.gameState = 'playing';
+            })
+            .start();
+    }
+
+    setupControls() {
+        window.addEventListener('keydown', (e) => {
+            switch (e.key) {
+                case 'ArrowUp': case 'w': this.move('up'); break;
+                case 'ArrowDown': case 's': this.move('down'); break;
+                case 'ArrowLeft': case 'a': this.move('left'); break;
+                case 'ArrowRight': case 'd': this.move('right'); break;
+            }
+        });
+
+        document.getElementById('reset-btn').onclick = () => this.initLevel(this.currentLevel);
+        document.getElementById('next-btn').onclick = () => {
+            this.currentLevel = (this.currentLevel + 1) % LEVELS.length;
+            this.initLevel(this.currentLevel);
+            document.getElementById('overlay').classList.add('hidden');
+            this.gameState = 'playing';
+        };
+
+        // Swipe controls
+        let touchStart = null;
+        window.addEventListener('touchstart', (e) => {
+            touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        });
+        window.addEventListener('touchend', (e) => {
+            if (!touchStart) return;
+            const touchEnd = { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+            const dx = touchEnd.x - touchStart.x;
+            const dy = touchEnd.y - touchStart.y;
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (Math.abs(dx) > 30) this.move(dx > 0 ? 'right' : 'left');
+            } else {
+                if (Math.abs(dy) > 30) this.move(dy > 0 ? 'down' : 'up');
+            }
+            touchStart = null;
+        });
+    }
+
+    updateUI() {
+        document.getElementById('level-val').textContent = this.currentLevel + 1;
+        document.getElementById('moves-val').textContent = this.moves;
+    }
+
+    onWindowResize() {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    animate(time) {
+        requestAnimationFrame((t) => this.animate(t));
+        TWEEN.update(time);
+        this.renderer.render(this.scene, this.camera);
     }
 }
 
-// 启动游戏
-window.addEventListener('DOMContentLoaded', () => {
-    new BloxorzGame();
-});
+new Bloxorz();
