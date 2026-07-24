@@ -127,8 +127,7 @@ private fun TileCell(
     textColor: Color,
     size: Dp,
     xOffset: Dp,
-    yOffset: Dp,
-    key: String
+    yOffset: Dp
 ) {
     val tileShape = RoundedCornerShape(8.dp)
 
