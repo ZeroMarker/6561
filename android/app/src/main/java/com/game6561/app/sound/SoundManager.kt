@@ -3,7 +3,6 @@ package com.game6561.app.sound
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFormat
-import android.media.AudioManager
 import android.media.AudioTrack
 import android.os.Build
 import android.os.VibrationEffect
@@ -13,10 +12,12 @@ import kotlin.math.PI
 import kotlin.math.floor
 import kotlin.math.sin
 
+private const val SINE = 0
+private const val SAWTOOTH = 1
+
 class SoundManager(private val context: Context) {
 
     private var enabled = true
-    private var audioTrack: AudioTrack? = null
 
     private val vibrator: Vibrator? by lazy {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -36,28 +37,28 @@ class SoundManager(private val context: Context) {
         if (!enabled) return
 
         when (type) {
-            SoundType.MOVE -> playTone(200.0, 0.1, 0.1)
+            SoundType.MOVE -> playTone(200.0, 0.1, 0.1f)
             SoundType.MERGE -> {
-                playTone(400.0, 0.15, 0.15)
-                vibrate(30)
+                playTone(400.0, 0.15, 0.15f)
+                vibrate(30L)
             }
-            SoundType.COMBO -> playTone(600.0, 0.2, 0.2)
+            SoundType.COMBO -> playTone(600.0, 0.2, 0.2f)
             SoundType.WIN -> {
-                playTone(523.25, 0.3, 0.1)
+                playTone(523.25, 0.3, 0.1f)
                 Thread.sleep(50)
-                playTone(659.25, 0.3, 0.1)
+                playTone(659.25, 0.3, 0.1f)
                 Thread.sleep(50)
-                playTone(783.99, 0.3, 0.2)
+                playTone(783.99, 0.3, 0.2f)
                 vibrate(longArrayOf(100, 50, 100, 50, 200))
             }
-            SoundType.GAME_OVER -> playTone(150.0, 0.5, 0.2, AudioTrack.WAVEFORM_SAWTOOTH)
-            SoundType.UNDO -> playTone(300.0, 0.08, 0.1)
-            SoundType.START -> playTone(440.0, 0.2, 0.1)
-            SoundType.INVALID -> playTone(100.0, 0.1, 0.05)
+            SoundType.GAME_OVER -> playTone(150.0, 0.5, 0.2f, SAWTOOTH)
+            SoundType.UNDO -> playTone(300.0, 0.08, 0.1f)
+            SoundType.START -> playTone(440.0, 0.2, 0.1f)
+            SoundType.INVALID -> playTone(100.0, 0.1, 0.05f)
         }
     }
 
-    private fun playTone(frequency: Double, durationSec: Double, volume: Float, waveform: Int = AudioTrack.WAVEFORM_SINE) {
+    private fun playTone(frequency: Double, durationSec: Double, volume: Float, waveform: Int = SINE) {
         try {
             val sampleRate = 44100
             val numSamples = (sampleRate * durationSec).toInt()
@@ -66,7 +67,7 @@ class SoundManager(private val context: Context) {
             for (i in 0 until numSamples) {
                 val t = i.toDouble() / sampleRate
                 val value = when (waveform) {
-                    AudioTrack.WAVEFORM_SAWTOOTH -> 2.0 * (frequency * t - floor(frequency * t)) - 1.0
+                    SAWTOOTH -> 2.0 * (frequency * t - floor(frequency * t)) - 1.0
                     else -> sin(2.0 * PI * frequency * t)
                 }
                 buffer[i] = (value * Short.MAX_VALUE * volume).toInt().toShort()
@@ -123,10 +124,7 @@ class SoundManager(private val context: Context) {
         } catch (_: Exception) {}
     }
 
-    fun release() {
-        audioTrack?.release()
-        audioTrack = null
-    }
+    fun release() {}
 }
 
 enum class SoundType {

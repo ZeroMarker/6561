@@ -105,7 +105,7 @@ jobs:
           swift build 2>/dev/null || true
           # Validate syntax of all Swift files
           for f in $(find Game6561 -name "*.swift"); do
-            swift -parse "$f" 2>&1 || echo "Warning: $f needs Xcode project context"
+            swiftc -typecheck "$f" 2>&1 || echo "Info: $f needs Xcode project context"
           done
       - name: Check project structure
         run: |

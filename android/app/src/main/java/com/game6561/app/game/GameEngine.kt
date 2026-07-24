@@ -2,15 +2,16 @@ package com.game6561.app.game
 
 import kotlin.random.Random
 
-fun GameState.copyOfHistory(): MutableList<HistoryEntry> =
-    history.map { it.copy(grid = it.grid.map { row -> row.copyOf() }.toTypedArray()) }.toMutableList()
-
 object GameEngine {
 
     private val random = Random
 
-    fun createInitialState(): GameState = GameState()
-        .let { addRandomTile(addRandomTile(it)) }
+    fun createInitialState(): GameState {
+        var state = GameState()
+        state = addRandomTile(state)
+        state = addRandomTile(state)
+        return state
+    }
 
     fun move(state: GameState, direction: Direction): GameState {
         if (state.gameOver || state.gameWon) return state
@@ -18,28 +19,28 @@ object GameEngine {
         val result = performSlide(state.grid, direction)
         if (!boardChanged(state.grid, result.newGrid)) return state
 
-        val history = state.copyOfHistory()
-        history.add(
-            HistoryEntry(
-                grid = state.copyGrid(),
-                score = state.score,
-                moves = state.moves,
-                gameWon = state.gameWon,
-                gameOver = state.gameOver,
-                combo = state.combo
-            )
+        // Save to history
+        val entry = HistoryEntry(
+            grid = state.grid.map { it.copyOf() }.toTypedArray(),
+            score = state.score,
+            moves = state.moves,
+            gameWon = state.gameWon,
+            gameOver = state.gameOver,
+            combo = state.combo
         )
-        if (history.size > MAX_HISTORY) history.removeAt(0)
+        val newHistory = state.history.toMutableList()
+        newHistory.add(entry)
+        if (newHistory.size > MAX_HISTORY) newHistory.removeAt(0)
 
         var newState = state.copy(
             grid = result.newGrid,
-            history = history,
+            history = newHistory,
             moves = state.moves + 1
         )
 
+        // Handle merge and combo
         if (result.score > 0) {
             val newCombo = state.combo + 1
-            val newTotalMerges = state.totalMerges + result.mergedCount
             val newMaxCombo = maxOf(state.maxCombo, newCombo)
             val comboBonus = if (newCombo > 1) (result.score * 0.1 * (newCombo - 1)).toInt() else 0
             val scoreAdd = result.score + comboBonus
@@ -47,23 +48,27 @@ object GameEngine {
             newState = newState.copy(
                 score = state.score + scoreAdd,
                 combo = newCombo,
-                totalMerges = newTotalMerges,
+                totalMerges = state.totalMerges + result.mergedCount,
                 maxCombo = newMaxCombo
             )
         } else {
             newState = newState.copy(combo = 0)
         }
 
+        // Check win
         if (!state.gameWon && hasWon(newState.grid)) {
             newState = newState.copy(gameWon = true)
         }
 
+        // Add new tile
         newState = addRandomTile(newState)
 
+        // Update best score
         if (newState.score > newState.best) {
             newState = newState.copy(best = newState.score)
         }
 
+        // Check game over
         if (!newState.hasEmptyCell() && !canAnyMove(newState.grid)) {
             newState = newState.copy(gameOver = true)
         }
@@ -74,8 +79,8 @@ object GameEngine {
     fun undo(state: GameState): GameState? {
         if (state.history.isEmpty() || state.gameOver) return null
 
-        val history = state.copyOfHistory()
-        val prev = history.removeAt(history.lastIndex)
+        val newHistory = state.history.toMutableList()
+        val prev = newHistory.removeAt(newHistory.lastIndex)
 
         return state.copy(
             grid = prev.grid,
@@ -84,7 +89,7 @@ object GameEngine {
             gameWon = prev.gameWon,
             gameOver = prev.gameOver,
             combo = prev.combo,
-            history = history
+            history = newHistory
         )
     }
 
@@ -98,7 +103,7 @@ object GameEngine {
         if (empties.isEmpty()) return state
 
         val (r, c) = empties[random.nextInt(empties.size)]
-        val newGrid = state.copyGrid()
+        val newGrid = state.grid.map { it.copyOf() }.toTypedArray()
         newGrid[r][c] = 1
         return state.copy(grid = newGrid)
     }
@@ -111,28 +116,28 @@ object GameEngine {
         when (direction) {
             Direction.LEFT -> {
                 for (i in 0 until GRID_SIZE) {
-                    val (line, score, merged) = mergeLine(gridCopy[i])
-                    gridCopy[i] = line
-                    totalScore += score
-                    totalMerged += merged
+                    val res = mergeLine(gridCopy[i])
+                    gridCopy[i] = res.line
+                    totalScore += res.score
+                    totalMerged += res.mergedCount
                 }
             }
             Direction.RIGHT -> {
                 for (i in 0 until GRID_SIZE) {
                     val reversed = gridCopy[i].reversedArray()
-                    val (line, score, merged) = mergeLine(reversed)
-                    gridCopy[i] = line.reversedArray()
-                    totalScore += score
-                    totalMerged += merged
+                    val res = mergeLine(reversed)
+                    gridCopy[i] = res.line.reversedArray()
+                    totalScore += res.score
+                    totalMerged += res.mergedCount
                 }
             }
             Direction.UP -> {
                 val transposed = transpose(gridCopy)
                 for (i in 0 until GRID_SIZE) {
-                    val (line, score, merged) = mergeLine(transposed[i])
-                    transposed[i] = line
-                    totalScore += score
-                    totalMerged += merged
+                    val res = mergeLine(transposed[i])
+                    transposed[i] = res.line
+                    totalScore += res.score
+                    totalMerged += res.mergedCount
                 }
                 val result = transpose(transposed)
                 for (i in 0 until GRID_SIZE) gridCopy[i] = result[i]
@@ -141,10 +146,10 @@ object GameEngine {
                 val transposed = transpose(gridCopy)
                 for (i in 0 until GRID_SIZE) {
                     val reversed = transposed[i].reversedArray()
-                    val (line, score, merged) = mergeLine(reversed)
-                    transposed[i] = line.reversedArray()
-                    totalScore += score
-                    totalMerged += merged
+                    val res = mergeLine(reversed)
+                    transposed[i] = res.line.reversedArray()
+                    totalScore += res.score
+                    totalMerged += res.mergedCount
                 }
                 val result = transpose(transposed)
                 for (i in 0 until GRID_SIZE) gridCopy[i] = result[i]
