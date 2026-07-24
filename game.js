@@ -3,7 +3,6 @@ const SIZE = 6;
 const PADDING = 4;
 const GAP = 4;
 const TILE_VALUES = [0, 3, 9, 27, 81, 243, 729, 2187, 6561];
-const WIN_TILE_VALUE = 6561;
 const WIN_TILE_EXP = 9;
 
 // 动画配置
@@ -92,7 +91,7 @@ const GameState = {
     },
 
     undo() {
-        if (this.history.length === 0 || this.gameOver) return null;
+        if (this.history.length === 0 || this.gameOver) {return null;}
         const prevState = this.history.pop();
         Object.assign(this, prevState);
         return prevState;
@@ -154,11 +153,11 @@ const SoundSystem = {
     },
 
     play(type) {
-        if (!Settings.soundEnabled) return;
+        if (!Settings.soundEnabled) {return;}
 
         try {
             this.ensureContext();
-            if (!this.audioContext) return;
+            if (!this.audioContext) {return;}
 
             const oscillator = this.audioContext.createOscillator();
             const gainNode = this.audioContext.createGain();
@@ -169,72 +168,72 @@ const SoundSystem = {
             const now = this.audioContext.currentTime;
 
             switch (type) {
-                case 'move':
-                    oscillator.frequency.value = 200;
-                    gainNode.gain.setValueAtTime(0.1, now);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                    oscillator.start(now);
-                    oscillator.stop(now + 0.1);
-                    break;
-                case 'merge':
-                    oscillator.frequency.value = 400;
-                    gainNode.gain.setValueAtTime(0.15, now);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    oscillator.start(now);
-                    oscillator.stop(now + 0.15);
-                    break;
-                case 'combo':
-                    // 连击音效 - 更高音调
-                    oscillator.frequency.value = 600 + (GameState.combo * 100);
-                    gainNode.gain.setValueAtTime(0.2, now);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                    oscillator.start(now);
-                    oscillator.stop(now + 0.2);
-                    break;
-                case 'win':
-                    [523.25, 659.25, 783.99].forEach((freq, i) => {
-                        const osc = this.audioContext.createOscillator();
-                        const gain = this.audioContext.createGain();
-                        osc.connect(gain);
-                        gain.connect(this.audioContext.destination);
-                        osc.frequency.value = freq;
-                        gain.gain.setValueAtTime(0.1, now + i * 0.1);
-                        gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.3);
-                        osc.start(now + i * 0.1);
-                        osc.stop(now + i * 0.1 + 0.3);
-                    });
-                    return;
-                case 'gameover':
-                    oscillator.frequency.value = 150;
-                    oscillator.type = 'sawtooth';
-                    gainNode.gain.setValueAtTime(0.2, now);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-                    oscillator.start(now);
-                    oscillator.stop(now + 0.5);
-                    break;
-                case 'undo':
-                    oscillator.frequency.value = 300;
-                    gainNode.gain.setValueAtTime(0.1, now);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
-                    oscillator.start(now);
-                    oscillator.stop(now + 0.08);
-                    break;
-                case 'start':
-                    oscillator.frequency.value = 440;
-                    gainNode.gain.setValueAtTime(0.1, now);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                    oscillator.start(now);
-                    oscillator.stop(now + 0.2);
-                    break;
-                case 'invalid':
-                    // 无效移动音效
-                    oscillator.frequency.value = 100;
-                    oscillator.type = 'square';
-                    gainNode.gain.setValueAtTime(0.05, now);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                    oscillator.start(now);
-                    oscillator.stop(now + 0.1);
-                    break;
+            case 'move':
+                oscillator.frequency.value = 200;
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                oscillator.start(now);
+                oscillator.stop(now + 0.1);
+                break;
+            case 'merge':
+                oscillator.frequency.value = 400;
+                gainNode.gain.setValueAtTime(0.15, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                oscillator.start(now);
+                oscillator.stop(now + 0.15);
+                break;
+            case 'combo':
+                // 连击音效 - 更高音调
+                oscillator.frequency.value = 600 + (GameState.combo * 100);
+                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                oscillator.start(now);
+                oscillator.stop(now + 0.2);
+                break;
+            case 'win':
+                [523.25, 659.25, 783.99].forEach((freq, i) => {
+                    const osc = this.audioContext.createOscillator();
+                    const gain = this.audioContext.createGain();
+                    osc.connect(gain);
+                    gain.connect(this.audioContext.destination);
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.1, now + i * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.3);
+                    osc.start(now + i * 0.1);
+                    osc.stop(now + i * 0.1 + 0.3);
+                });
+                return;
+            case 'gameover':
+                oscillator.frequency.value = 150;
+                oscillator.type = 'sawtooth';
+                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                oscillator.start(now);
+                oscillator.stop(now + 0.5);
+                break;
+            case 'undo':
+                oscillator.frequency.value = 300;
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                oscillator.start(now);
+                oscillator.stop(now + 0.08);
+                break;
+            case 'start':
+                oscillator.frequency.value = 440;
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                oscillator.start(now);
+                oscillator.stop(now + 0.2);
+                break;
+            case 'invalid':
+                // 无效移动音效
+                oscillator.frequency.value = 100;
+                oscillator.type = 'square';
+                gainNode.gain.setValueAtTime(0.05, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                oscillator.start(now);
+                oscillator.stop(now + 0.1);
+                break;
             }
 
             if (type === 'merge' && navigator.vibrate) {
@@ -265,7 +264,7 @@ const Statistics = {
 
     recordGame(won, finalScore, finalMoves, maxCombo) {
         GameState.gamesPlayed++;
-        if (won) GameState.gamesWon++;
+        if (won) {GameState.gamesWon++;}
 
         const stats = {
             gamesPlayed: GameState.gamesPlayed,
@@ -282,7 +281,7 @@ const Statistics = {
     },
 
     getWinRate() {
-        if (GameState.gamesPlayed === 0) return 0;
+        if (GameState.gamesPlayed === 0) {return 0;}
         return ((GameState.gamesWon / GameState.gamesPlayed) * 100).toFixed(1);
     }
 };
@@ -337,7 +336,7 @@ const TileRenderer = {
         for (let i = 0; i < SIZE; i++) {
             for (let j = 0; j < SIZE; j++) {
                 const exp = GameState.grid[i][j];
-                if (exp === 0) continue;
+                if (exp === 0) {continue;}
 
                 const key = `${i}-${j}-${exp}`;
                 currentTiles.set(key, { row: i, col: j, exp });
@@ -368,13 +367,15 @@ const TileRenderer = {
             this.tileMap.delete(id);
         });
 
-        // 更新/创建瓦片
-        currentTiles.forEach((data, key) => {
-            const existingId = Array.from(this.tileMap.entries()).find(([_, t]) =>
-                t.row === data.row && t.col === data.col && t.exp === data.exp
-            )?.[0];
+        // 更新/创建瓦片 — 用 Map 做 O(1) 查找
+        const tileLookup = new Map();
+        this.tileMap.forEach((tile, id) => {
+            tileLookup.set(`${tile.row}-${tile.col}-${tile.exp}`, id);
+        });
 
-            if (existingId) return;
+        currentTiles.forEach((data) => {
+            const key = `${data.row}-${data.col}-${data.exp}`;
+            if (tileLookup.has(key)) {return;}
 
             const tile = document.createElement('div');
             tile.className = `tile tile-${data.exp}`;
@@ -480,7 +481,7 @@ function performSlide(g, dir) {
             deltaScore += res.score;
         }
     } else {
-        let tGrid = transpose(gridCopy);
+        const tGrid = transpose(gridCopy);
         for (let i = 0; i < SIZE; i++) {
             const res = dir === 'up' ? slideLeft(tGrid[i]) : slideRight(tGrid[i]);
             tGrid[i] = res.line;
@@ -496,7 +497,7 @@ function performSlide(g, dir) {
 function boardChanged(oldG, newG) {
     for (let i = 0; i < SIZE; i++) {
         for (let j = 0; j < SIZE; j++) {
-            if (oldG[i][j] !== newG[i][j]) return true;
+            if (oldG[i][j] !== newG[i][j]) {return true;}
         }
     }
     return false;
@@ -504,9 +505,9 @@ function boardChanged(oldG, newG) {
 
 function canAnyMove() {
     const dirs = ['left', 'right', 'up', 'down'];
-    for (let dir of dirs) {
+    for (const dir of dirs) {
         const res = performSlide(GameState.grid, dir);
-        if (boardChanged(GameState.grid, res.newGrid)) return true;
+        if (boardChanged(GameState.grid, res.newGrid)) {return true;}
     }
     return false;
 }
@@ -514,7 +515,7 @@ function canAnyMove() {
 function hasEmpty() {
     for (let i = 0; i < SIZE; i++) {
         for (let j = 0; j < SIZE; j++) {
-            if (GameState.grid[i][j] === 0) return true;
+            if (GameState.grid[i][j] === 0) {return true;}
         }
     }
     return false;
@@ -522,11 +523,10 @@ function hasEmpty() {
 
 // ==================== 游戏核心逻辑 ====================
 function move(dir) {
-    if (GameState.gameOver) return;
+    if (GameState.gameOver) {return;}
 
-    const oldGrid = GameState.grid.map(r => [...r]);
     const res = performSlide(GameState.grid, dir);
-    const changed = boardChanged(oldGrid, res.newGrid);
+    const changed = boardChanged(GameState.grid, res.newGrid);
 
     if (changed) {
         GameState.saveHistory();
@@ -575,7 +575,7 @@ function move(dir) {
 }
 
 function checkWin() {
-    if (GameState.gameWon) return;
+    if (GameState.gameWon) {return;}
 
     for (let i = 0; i < SIZE; i++) {
         for (let j = 0; j < SIZE; j++) {
@@ -583,7 +583,7 @@ function checkWin() {
                 GameState.gameWon = true;
                 setTimeout(showWin, 300);
                 SoundSystem.play('win');
-                if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
+                if (navigator.vibrate) {navigator.vibrate([100, 50, 100, 50, 200]);}
                 return;
             }
         }
@@ -594,11 +594,11 @@ function addRandomTile() {
     const empties = [];
     for (let i = 0; i < SIZE; i++) {
         for (let j = 0; j < SIZE; j++) {
-            if (GameState.grid[i][j] === 0) empties.push({ r: i, c: j });
+            if (GameState.grid[i][j] === 0) {empties.push({ r: i, c: j });}
         }
     }
 
-    if (empties.length === 0) return false;
+    if (empties.length === 0) {return false;}
 
     const pos = empties[Math.floor(Math.random() * empties.length)];
     GameState.grid[pos.r][pos.c] = 1;
@@ -651,7 +651,7 @@ function showGameOver() {
     GameState.gameOver = true;
     DOM.overlayGameOverEl.classList.add('active');
     SoundSystem.play('gameover');
-    if (navigator.vibrate) navigator.vibrate(200);
+    if (navigator.vibrate) {navigator.vibrate(200);}
 
     // 记录统计
     Statistics.recordGame(GameState.gameWon, GameState.score, GameState.moves, GameState.maxCombo);
@@ -662,10 +662,10 @@ function showGameOver() {
     const finalTimeEl = document.getElementById('final-time');
     const finalComboEl = document.getElementById('final-combo');
 
-    if (finalScoreEl) finalScoreEl.textContent = GameState.score;
-    if (finalMovesEl) finalMovesEl.textContent = GameState.moves;
-    if (finalTimeEl) finalTimeEl.textContent = formatTime(GameState.gameTimer);
-    if (finalComboEl) finalComboEl.textContent = GameState.maxCombo;
+    if (finalScoreEl) {finalScoreEl.textContent = GameState.score;}
+    if (finalMovesEl) {finalMovesEl.textContent = GameState.moves;}
+    if (finalTimeEl) {finalTimeEl.textContent = formatTime(GameState.gameTimer);}
+    if (finalComboEl) {finalComboEl.textContent = GameState.maxCombo;}
 
     clearGameState();
 }
@@ -732,9 +732,9 @@ function restartGame() {
 }
 
 function undo() {
-    if (GameState.history.length === 0 || GameState.gameOver) return;
+    if (GameState.history.length === 0 || GameState.gameOver) {return;}
 
-    const prevState = GameState.undo();
+    GameState.undo();
     hideOverlays();
     updateDisplay();
     SoundSystem.play('undo');
@@ -757,7 +757,7 @@ const PauseSystem = {
     },
 
     pause() {
-        if (this.isPaused || GameState.gameOver) return;
+        if (this.isPaused || GameState.gameOver) {return;}
         this.isPaused = true;
         if (GameState.timerInterval) {
             clearInterval(GameState.timerInterval);
@@ -766,8 +766,11 @@ const PauseSystem = {
     },
 
     resume() {
-        if (!this.isPaused || GameState.gameOver) return;
+        if (!this.isPaused || GameState.gameOver) {return;}
         this.isPaused = false;
+        if (GameState.timerInterval) {
+            clearInterval(GameState.timerInterval);
+        }
         GameState.timerInterval = setInterval(() => {
             GameState.gameTimer++;
             updateDisplay();
@@ -832,21 +835,21 @@ function handleKeydown(e) {
 
     let dir;
     switch (e.code) {
-        case 'ArrowLeft':
-        case 'KeyA': dir = 'left'; break;
-        case 'ArrowRight':
-        case 'KeyD': dir = 'right'; break;
-        case 'ArrowUp':
-        case 'KeyW': dir = 'up'; break;
-        case 'ArrowDown':
-        case 'KeyS': dir = 'down'; break;
-        case 'KeyZ':
-            if (e.ctrlKey || e.metaKey) {
-                e.preventDefault();
-                undo();
-                return;
-            }
-            break;
+    case 'ArrowLeft':
+    case 'KeyA': dir = 'left'; break;
+    case 'ArrowRight':
+    case 'KeyD': dir = 'right'; break;
+    case 'ArrowUp':
+    case 'KeyW': dir = 'up'; break;
+    case 'ArrowDown':
+    case 'KeyS': dir = 'down'; break;
+    case 'KeyZ':
+        if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            undo();
+            return;
+        }
+        break;
     }
 
     if (dir) {
@@ -899,7 +902,7 @@ function setupInstallPrompt() {
     window.addEventListener('appinstalled', () => {
         deferredPrompt = null;
         const installBtn = document.getElementById('btn-install');
-        if (installBtn) installBtn.style.display = 'none';
+        if (installBtn) {installBtn.style.display = 'none';}
     });
 }
 
@@ -958,11 +961,11 @@ function showStats() {
         const bestScoreEl = document.getElementById('stat-best-score');
         const maxComboEl = document.getElementById('stat-max-combo');
 
-        if (winRateEl) winRateEl.textContent = `${Statistics.getWinRate()}%`;
-        if (gamesPlayedEl) gamesPlayedEl.textContent = GameState.gamesPlayed;
-        if (gamesWonEl) gamesWonEl.textContent = GameState.gamesWon;
-        if (bestScoreEl) bestScoreEl.textContent = GameState.best;
-        if (maxComboEl) maxComboEl.textContent = Storage.get('maxCombo6561', 0);
+        if (winRateEl) {winRateEl.textContent = `${Statistics.getWinRate()}%`;}
+        if (gamesPlayedEl) {gamesPlayedEl.textContent = GameState.gamesPlayed;}
+        if (gamesWonEl) {gamesWonEl.textContent = GameState.gamesWon;}
+        if (bestScoreEl) {bestScoreEl.textContent = GameState.best;}
+        if (maxComboEl) {maxComboEl.textContent = Storage.get('maxCombo6561', 0);}
 
         stats.classList.add('active');
     }

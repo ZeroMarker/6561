@@ -195,3 +195,6 @@ vcs.xml
 
 # Android Profiling
 *.hprof
+
+# Command Code
+.commandcode/
