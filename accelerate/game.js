@@ -9,7 +9,9 @@ class Game2048 {
     }
 
     init() {
-        this.grid = Array(this.size).fill(null).map(() => Array(this.size).fill(0));
+        this.grid = Array(this.size)
+            .fill(null)
+            .map(() => Array(this.size).fill(0));
         this.score = 0;
         this.won = false;
         this.over = false;
@@ -57,7 +59,7 @@ class Game2048 {
         if (moved) {
             this.addRandomTile();
             this.updateScore();
-            
+
             if (this.checkWin()) {
                 this.won = true;
             } else if (this.checkGameOver()) {
@@ -71,7 +73,7 @@ class Game2048 {
     moveLeft() {
         let moved = false;
         for (let r = 0; r < this.size; r++) {
-            const row = this.grid[r].filter(val => val !== 0);
+            const row = this.grid[r].filter((val) => val !== 0);
             for (let i = 0; i < row.length - 1; i++) {
                 if (row[i] === row[i + 1]) {
                     row[i] *= 2;
@@ -93,7 +95,7 @@ class Game2048 {
     moveRight() {
         let moved = false;
         for (let r = 0; r < this.size; r++) {
-            const row = this.grid[r].filter(val => val !== 0);
+            const row = this.grid[r].filter((val) => val !== 0);
             for (let i = row.length - 1; i > 0; i--) {
                 if (row[i] === row[i - 1]) {
                     row[i] *= 2;

@@ -81,7 +81,7 @@ const GameState = {
             this.history.shift();
         }
         this.history.push({
-            grid: this.grid.map(row => [...row]),
+            grid: this.grid.map((row) => [...row]),
             score: this.score,
             moves: this.moves,
             gameWon: this.gameWon,
@@ -91,7 +91,9 @@ const GameState = {
     },
 
     undo() {
-        if (this.history.length === 0 || this.gameOver) {return null;}
+        if (this.history.length === 0 || this.gameOver) {
+            return null;
+        }
         const prevState = this.history.pop();
         Object.assign(this, prevState);
         return prevState;
@@ -153,11 +155,15 @@ const SoundSystem = {
     },
 
     play(type) {
-        if (!Settings.soundEnabled) {return;}
+        if (!Settings.soundEnabled) {
+            return;
+        }
 
         try {
             this.ensureContext();
-            if (!this.audioContext) {return;}
+            if (!this.audioContext) {
+                return;
+            }
 
             const oscillator = this.audioContext.createOscillator();
             const gainNode = this.audioContext.createGain();
@@ -168,72 +174,72 @@ const SoundSystem = {
             const now = this.audioContext.currentTime;
 
             switch (type) {
-            case 'move':
-                oscillator.frequency.value = 200;
-                gainNode.gain.setValueAtTime(0.1, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                oscillator.start(now);
-                oscillator.stop(now + 0.1);
-                break;
-            case 'merge':
-                oscillator.frequency.value = 400;
-                gainNode.gain.setValueAtTime(0.15, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                oscillator.start(now);
-                oscillator.stop(now + 0.15);
-                break;
-            case 'combo':
-                // 连击音效 - 更高音调
-                oscillator.frequency.value = 600 + (GameState.combo * 100);
-                gainNode.gain.setValueAtTime(0.2, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                oscillator.start(now);
-                oscillator.stop(now + 0.2);
-                break;
-            case 'win':
-                [523.25, 659.25, 783.99].forEach((freq, i) => {
-                    const osc = this.audioContext.createOscillator();
-                    const gain = this.audioContext.createGain();
-                    osc.connect(gain);
-                    gain.connect(this.audioContext.destination);
-                    osc.frequency.value = freq;
-                    gain.gain.setValueAtTime(0.1, now + i * 0.1);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.3);
-                    osc.start(now + i * 0.1);
-                    osc.stop(now + i * 0.1 + 0.3);
-                });
-                return;
-            case 'gameover':
-                oscillator.frequency.value = 150;
-                oscillator.type = 'sawtooth';
-                gainNode.gain.setValueAtTime(0.2, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-                oscillator.start(now);
-                oscillator.stop(now + 0.5);
-                break;
-            case 'undo':
-                oscillator.frequency.value = 300;
-                gainNode.gain.setValueAtTime(0.1, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
-                oscillator.start(now);
-                oscillator.stop(now + 0.08);
-                break;
-            case 'start':
-                oscillator.frequency.value = 440;
-                gainNode.gain.setValueAtTime(0.1, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                oscillator.start(now);
-                oscillator.stop(now + 0.2);
-                break;
-            case 'invalid':
-                // 无效移动音效
-                oscillator.frequency.value = 100;
-                oscillator.type = 'square';
-                gainNode.gain.setValueAtTime(0.05, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                oscillator.start(now);
-                oscillator.stop(now + 0.1);
-                break;
+                case 'move':
+                    oscillator.frequency.value = 200;
+                    gainNode.gain.setValueAtTime(0.1, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.1);
+                    break;
+                case 'merge':
+                    oscillator.frequency.value = 400;
+                    gainNode.gain.setValueAtTime(0.15, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.15);
+                    break;
+                case 'combo':
+                    // 连击音效 - 更高音调
+                    oscillator.frequency.value = 600 + GameState.combo * 100;
+                    gainNode.gain.setValueAtTime(0.2, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.2);
+                    break;
+                case 'win':
+                    [523.25, 659.25, 783.99].forEach((freq, i) => {
+                        const osc = this.audioContext.createOscillator();
+                        const gain = this.audioContext.createGain();
+                        osc.connect(gain);
+                        gain.connect(this.audioContext.destination);
+                        osc.frequency.value = freq;
+                        gain.gain.setValueAtTime(0.1, now + i * 0.1);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.3);
+                        osc.start(now + i * 0.1);
+                        osc.stop(now + i * 0.1 + 0.3);
+                    });
+                    return;
+                case 'gameover':
+                    oscillator.frequency.value = 150;
+                    oscillator.type = 'sawtooth';
+                    gainNode.gain.setValueAtTime(0.2, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.5);
+                    break;
+                case 'undo':
+                    oscillator.frequency.value = 300;
+                    gainNode.gain.setValueAtTime(0.1, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.08);
+                    break;
+                case 'start':
+                    oscillator.frequency.value = 440;
+                    gainNode.gain.setValueAtTime(0.1, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.2);
+                    break;
+                case 'invalid':
+                    // 无效移动音效
+                    oscillator.frequency.value = 100;
+                    oscillator.type = 'square';
+                    gainNode.gain.setValueAtTime(0.05, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.1);
+                    break;
             }
 
             if (type === 'merge' && navigator.vibrate) {
@@ -264,7 +270,9 @@ const Statistics = {
 
     recordGame(won, finalScore, finalMoves, maxCombo) {
         GameState.gamesPlayed++;
-        if (won) {GameState.gamesWon++;}
+        if (won) {
+            GameState.gamesWon++;
+        }
 
         const stats = {
             gamesPlayed: GameState.gamesPlayed,
@@ -281,7 +289,9 @@ const Statistics = {
     },
 
     getWinRate() {
-        if (GameState.gamesPlayed === 0) {return 0;}
+        if (GameState.gamesPlayed === 0) {
+            return 0;
+        }
         return ((GameState.gamesWon / GameState.gamesPlayed) * 100).toFixed(1);
     }
 };
@@ -336,7 +346,9 @@ const TileRenderer = {
         for (let i = 0; i < SIZE; i++) {
             for (let j = 0; j < SIZE; j++) {
                 const exp = GameState.grid[i][j];
-                if (exp === 0) {continue;}
+                if (exp === 0) {
+                    continue;
+                }
 
                 const key = `${i}-${j}-${exp}`;
                 currentTiles.set(key, { row: i, col: j, exp });
@@ -352,7 +364,7 @@ const TileRenderer = {
             }
         });
 
-        toRemove.forEach(id => {
+        toRemove.forEach((id) => {
             const tile = this.tileMap.get(id);
             if (tile && tile.element) {
                 tile.element.style.opacity = '0';
@@ -375,7 +387,9 @@ const TileRenderer = {
 
         currentTiles.forEach((data) => {
             const key = `${data.row}-${data.col}-${data.exp}`;
-            if (tileLookup.has(key)) {return;}
+            if (tileLookup.has(key)) {
+                return;
+            }
 
             const tile = document.createElement('div');
             tile.className = `tile tile-${data.exp}`;
@@ -428,20 +442,22 @@ const TileRenderer = {
 
 // ==================== 矩阵工具函数 ====================
 function transpose(g) {
-    return g[0].map((_, i) => g.map(row => row[i]));
+    return g[0].map((_, i) => g.map((row) => row[i]));
 }
 
 // ==================== 合并逻辑 ====================
 function mergeLine(line) {
-    const nonZero = line.filter(val => val !== 0);
+    const nonZero = line.filter((val) => val !== 0);
     const merged = [];
     let addedScore = 0;
     let i = 0;
 
     while (i < nonZero.length) {
-        if (i + 2 < nonZero.length &&
+        if (
+            i + 2 < nonZero.length &&
             nonZero[i] === nonZero[i + 1] &&
-            nonZero[i] === nonZero[i + 2]) {
+            nonZero[i] === nonZero[i + 2]
+        ) {
             const newExp = nonZero[i] + 1;
             merged.push(newExp);
             addedScore += TILE_VALUES[newExp];
@@ -471,7 +487,7 @@ function slideRight(gridRow) {
 }
 
 function performSlide(g, dir) {
-    let gridCopy = g.map(row => [...row]);
+    let gridCopy = g.map((row) => [...row]);
     let deltaScore = 0;
 
     if (dir === 'left' || dir === 'right') {
@@ -497,7 +513,9 @@ function performSlide(g, dir) {
 function boardChanged(oldG, newG) {
     for (let i = 0; i < SIZE; i++) {
         for (let j = 0; j < SIZE; j++) {
-            if (oldG[i][j] !== newG[i][j]) {return true;}
+            if (oldG[i][j] !== newG[i][j]) {
+                return true;
+            }
         }
     }
     return false;
@@ -507,7 +525,9 @@ function canAnyMove() {
     const dirs = ['left', 'right', 'up', 'down'];
     for (const dir of dirs) {
         const res = performSlide(GameState.grid, dir);
-        if (boardChanged(GameState.grid, res.newGrid)) {return true;}
+        if (boardChanged(GameState.grid, res.newGrid)) {
+            return true;
+        }
     }
     return false;
 }
@@ -515,7 +535,9 @@ function canAnyMove() {
 function hasEmpty() {
     for (let i = 0; i < SIZE; i++) {
         for (let j = 0; j < SIZE; j++) {
-            if (GameState.grid[i][j] === 0) {return true;}
+            if (GameState.grid[i][j] === 0) {
+                return true;
+            }
         }
     }
     return false;
@@ -523,7 +545,9 @@ function hasEmpty() {
 
 // ==================== 游戏核心逻辑 ====================
 function move(dir) {
-    if (GameState.gameOver) {return;}
+    if (GameState.gameOver) {
+        return;
+    }
 
     const res = performSlide(GameState.grid, dir);
     const changed = boardChanged(GameState.grid, res.newGrid);
@@ -540,7 +564,8 @@ function move(dir) {
                 GameState.maxCombo = GameState.combo;
             }
             // 连击奖励
-            const comboBonus = GameState.combo > 1 ? Math.floor(res.score * 0.1 * (GameState.combo - 1)) : 0;
+            const comboBonus =
+                GameState.combo > 1 ? Math.floor(res.score * 0.1 * (GameState.combo - 1)) : 0;
             GameState.score += res.score + comboBonus;
 
             if (comboBonus > 0) {
@@ -575,7 +600,9 @@ function move(dir) {
 }
 
 function checkWin() {
-    if (GameState.gameWon) {return;}
+    if (GameState.gameWon) {
+        return;
+    }
 
     for (let i = 0; i < SIZE; i++) {
         for (let j = 0; j < SIZE; j++) {
@@ -583,7 +610,9 @@ function checkWin() {
                 GameState.gameWon = true;
                 setTimeout(showWin, 300);
                 SoundSystem.play('win');
-                if (navigator.vibrate) {navigator.vibrate([100, 50, 100, 50, 200]);}
+                if (navigator.vibrate) {
+                    navigator.vibrate([100, 50, 100, 50, 200]);
+                }
                 return;
             }
         }
@@ -594,11 +623,15 @@ function addRandomTile() {
     const empties = [];
     for (let i = 0; i < SIZE; i++) {
         for (let j = 0; j < SIZE; j++) {
-            if (GameState.grid[i][j] === 0) {empties.push({ r: i, c: j });}
+            if (GameState.grid[i][j] === 0) {
+                empties.push({ r: i, c: j });
+            }
         }
     }
 
-    if (empties.length === 0) {return false;}
+    if (empties.length === 0) {
+        return false;
+    }
 
     const pos = empties[Math.floor(Math.random() * empties.length)];
     GameState.grid[pos.r][pos.c] = 1;
@@ -651,7 +684,9 @@ function showGameOver() {
     GameState.gameOver = true;
     DOM.overlayGameOverEl.classList.add('active');
     SoundSystem.play('gameover');
-    if (navigator.vibrate) {navigator.vibrate(200);}
+    if (navigator.vibrate) {
+        navigator.vibrate(200);
+    }
 
     // 记录统计
     Statistics.recordGame(GameState.gameWon, GameState.score, GameState.moves, GameState.maxCombo);
@@ -662,10 +697,18 @@ function showGameOver() {
     const finalTimeEl = document.getElementById('final-time');
     const finalComboEl = document.getElementById('final-combo');
 
-    if (finalScoreEl) {finalScoreEl.textContent = GameState.score;}
-    if (finalMovesEl) {finalMovesEl.textContent = GameState.moves;}
-    if (finalTimeEl) {finalTimeEl.textContent = formatTime(GameState.gameTimer);}
-    if (finalComboEl) {finalComboEl.textContent = GameState.maxCombo;}
+    if (finalScoreEl) {
+        finalScoreEl.textContent = GameState.score;
+    }
+    if (finalMovesEl) {
+        finalMovesEl.textContent = GameState.moves;
+    }
+    if (finalTimeEl) {
+        finalTimeEl.textContent = formatTime(GameState.gameTimer);
+    }
+    if (finalComboEl) {
+        finalComboEl.textContent = GameState.maxCombo;
+    }
 
     clearGameState();
 }
@@ -732,7 +775,9 @@ function restartGame() {
 }
 
 function undo() {
-    if (GameState.history.length === 0 || GameState.gameOver) {return;}
+    if (GameState.history.length === 0 || GameState.gameOver) {
+        return;
+    }
 
     GameState.undo();
     hideOverlays();
@@ -757,7 +802,9 @@ const PauseSystem = {
     },
 
     pause() {
-        if (this.isPaused || GameState.gameOver) {return;}
+        if (this.isPaused || GameState.gameOver) {
+            return;
+        }
         this.isPaused = true;
         if (GameState.timerInterval) {
             clearInterval(GameState.timerInterval);
@@ -766,7 +813,9 @@ const PauseSystem = {
     },
 
     resume() {
-        if (!this.isPaused || GameState.gameOver) {return;}
+        if (!this.isPaused || GameState.gameOver) {
+            return;
+        }
         this.isPaused = false;
         if (GameState.timerInterval) {
             clearInterval(GameState.timerInterval);
@@ -835,21 +884,29 @@ function handleKeydown(e) {
 
     let dir;
     switch (e.code) {
-    case 'ArrowLeft':
-    case 'KeyA': dir = 'left'; break;
-    case 'ArrowRight':
-    case 'KeyD': dir = 'right'; break;
-    case 'ArrowUp':
-    case 'KeyW': dir = 'up'; break;
-    case 'ArrowDown':
-    case 'KeyS': dir = 'down'; break;
-    case 'KeyZ':
-        if (e.ctrlKey || e.metaKey) {
-            e.preventDefault();
-            undo();
-            return;
-        }
-        break;
+        case 'ArrowLeft':
+        case 'KeyA':
+            dir = 'left';
+            break;
+        case 'ArrowRight':
+        case 'KeyD':
+            dir = 'right';
+            break;
+        case 'ArrowUp':
+        case 'KeyW':
+            dir = 'up';
+            break;
+        case 'ArrowDown':
+        case 'KeyS':
+            dir = 'down';
+            break;
+        case 'KeyZ':
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                undo();
+                return;
+            }
+            break;
     }
 
     if (dir) {
@@ -902,7 +959,9 @@ function setupInstallPrompt() {
     window.addEventListener('appinstalled', () => {
         deferredPrompt = null;
         const installBtn = document.getElementById('btn-install');
-        if (installBtn) {installBtn.style.display = 'none';}
+        if (installBtn) {
+            installBtn.style.display = 'none';
+        }
     });
 }
 
@@ -961,11 +1020,21 @@ function showStats() {
         const bestScoreEl = document.getElementById('stat-best-score');
         const maxComboEl = document.getElementById('stat-max-combo');
 
-        if (winRateEl) {winRateEl.textContent = `${Statistics.getWinRate()}%`;}
-        if (gamesPlayedEl) {gamesPlayedEl.textContent = GameState.gamesPlayed;}
-        if (gamesWonEl) {gamesWonEl.textContent = GameState.gamesWon;}
-        if (bestScoreEl) {bestScoreEl.textContent = GameState.best;}
-        if (maxComboEl) {maxComboEl.textContent = Storage.get('maxCombo6561', 0);}
+        if (winRateEl) {
+            winRateEl.textContent = `${Statistics.getWinRate()}%`;
+        }
+        if (gamesPlayedEl) {
+            gamesPlayedEl.textContent = GameState.gamesPlayed;
+        }
+        if (gamesWonEl) {
+            gamesWonEl.textContent = GameState.gamesWon;
+        }
+        if (bestScoreEl) {
+            bestScoreEl.textContent = GameState.best;
+        }
+        if (maxComboEl) {
+            maxComboEl.textContent = Storage.get('maxCombo6561', 0);
+        }
 
         stats.classList.add('active');
     }
@@ -1055,8 +1124,9 @@ function init() {
 
     // 注册 Service Worker
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
+        navigator.serviceWorker
+            .register('/sw.js')
+            .then((registration) => {
                 console.log('SW registered:', registration.scope);
                 // 检查更新
                 registration.addEventListener('updatefound', () => {
@@ -1068,7 +1138,7 @@ function init() {
                     });
                 });
             })
-            .catch(err => {
+            .catch((err) => {
                 console.log('SW registration failed:', err);
             });
     }

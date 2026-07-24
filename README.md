@@ -7,10 +7,10 @@ A puzzle game where you merge three identical numbers to reach 6561. A variant o
 - **Goal**: Merge tiles to reach the **6561** tile!
 - **Controls**: Use arrow keys, WASD, or swipe (on touch devices) to move all tiles
 - **Merge Rule**: Three identical numbers merge into the next power of 3
-  - 3 + 3 + 3 → 9
-  - 9 + 9 + 9 → 27
-  - 27 + 27 + 27 → 81
-  - ... continue until you reach 6561!
+    - 3 + 3 + 3 → 9
+    - 9 + 9 + 9 → 27
+    - 27 + 27 + 27 → 81
+    - ... continue until you reach 6561!
 
 ## ✨ Features
 
@@ -65,13 +65,13 @@ npm run build
 
 ## 🎮 Controls
 
-| Action | Keyboard | Touch |
-|--------|----------|-------|
-| Move tiles | Arrow Keys / WASD | Swipe |
-| Undo | Ctrl+Z / Cmd+Z | Tap Undo button |
-| New Game | - | Click "New Game" |
-| Toggle Theme | - | Click "Dark/Light" |
-| Toggle Sound | - | Click "On/Off" |
+| Action       | Keyboard          | Touch              |
+| ------------ | ----------------- | ------------------ |
+| Move tiles   | Arrow Keys / WASD | Swipe              |
+| Undo         | Ctrl+Z / Cmd+Z    | Tap Undo button    |
+| New Game     | -                 | Click "New Game"   |
+| Toggle Theme | -                 | Click "Dark/Light" |
+| Toggle Sound | -                 | Click "On/Off"     |
 
 ## 📁 Project Structure
 
@@ -118,17 +118,17 @@ npm run test:watch
 
 ## 🔧 Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm start` | Start local development server |
-| `npm test` | Run unit tests |
-| `npm run test:watch` | Run tests in watch mode |
-| `npm run lint` | Lint JavaScript files |
-| `npm run lint:fix` | Fix linting issues |
-| `npm run format` | Format code with Prettier |
-| `npm run format:check` | Check code formatting |
-| `npm run build` | Build for production |
-| `npm run capacitor:sync` | Sync with Android project |
+| Command                  | Description                    |
+| ------------------------ | ------------------------------ |
+| `npm start`              | Start local development server |
+| `npm test`               | Run unit tests                 |
+| `npm run test:watch`     | Run tests in watch mode        |
+| `npm run lint`           | Lint JavaScript files          |
+| `npm run lint:fix`       | Fix linting issues             |
+| `npm run format`         | Format code with Prettier      |
+| `npm run format:check`   | Check code formatting          |
+| `npm run build`          | Build for production           |
+| `npm run capacitor:sync` | Sync with Android project      |
 
 ## 🎯 Game Rules
 
@@ -146,13 +146,13 @@ npm run test:watch
 
 ## ⚙️ Settings
 
-| Setting | Storage Key | Values |
-|---------|-------------|--------|
-| Theme | `theme6561` | `light`, `dark` |
-| Sound | `sound6561` | `true`, `false` |
-| Tutorial | `tutorial6561` | `true`, `false` |
-| Best Score | `best6561` | Number |
-| Game State | `gameState6561` | JSON object |
+| Setting    | Storage Key     | Values          |
+| ---------- | --------------- | --------------- |
+| Theme      | `theme6561`     | `light`, `dark` |
+| Sound      | `sound6561`     | `true`, `false` |
+| Tutorial   | `tutorial6561`  | `true`, `false` |
+| Best Score | `best6561`      | Number          |
+| Game State | `gameState6561` | JSON object     |
 
 ## 🤝 Contributing
 

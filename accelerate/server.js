@@ -24,13 +24,13 @@ const MIME_TYPES = {
 
 const server = http.createServer((req, res) => {
     console.log(`请求: ${req.method} ${req.url}`);
-    
+
     let filePath = req.url === '/' ? './index.html' : req.url;
     filePath = '.' + filePath.split('?')[0];
-    
+
     const extname = path.extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[extname] || 'application/octet-stream';
-    
+
     fs.readFile(filePath, (err, content) => {
         if (err) {
             if (err.code === 'ENOENT') {
@@ -41,7 +41,7 @@ const server = http.createServer((req, res) => {
                 res.end(`服务器错误: ${err.code}`);
             }
         } else {
-            res.writeHead(200, { 
+            res.writeHead(200, {
                 'Content-Type': contentType,
                 'Access-Control-Allow-Origin': '*'
             });

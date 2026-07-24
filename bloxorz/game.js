@@ -1,7 +1,12 @@
 class Bloxorz {
     constructor() {
         this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(
+            45,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+        );
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setClearColor(0x1a1a1a);
@@ -44,7 +49,7 @@ class Bloxorz {
     initLevel(levelIndex) {
         // Clear old level
         if (this.block) this.scene.remove(this.block);
-        this.tiles.forEach(tile => this.scene.remove(tile));
+        this.tiles.forEach((tile) => this.scene.remove(tile));
         this.tiles = [];
 
         const level = LEVELS[levelIndex];
@@ -56,7 +61,11 @@ class Bloxorz {
         // Create Grid
         const tileGeometry = new THREE.BoxGeometry(0.95, 0.2, 0.95);
         const tileMaterial = new THREE.MeshPhongMaterial({ color: 0x444444 });
-        const targetMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000, transparent: true, opacity: 0.5 });
+        const targetMaterial = new THREE.MeshPhongMaterial({
+            color: 0xff0000,
+            transparent: true,
+            opacity: 0.5
+        });
 
         for (let y = 0; y < level.grid.length; y++) {
             for (let x = 0; x < level.grid[y].length; x++) {
@@ -200,7 +209,7 @@ class Bloxorz {
 
                 // Rotate around pivot
                 const q = new THREE.Quaternion().setFromAxisAngle(axis, proxy.t);
-                
+
                 // Position offset
                 this.block.position.sub(pivot);
                 this.block.position.applyQuaternion(q);
@@ -213,7 +222,7 @@ class Bloxorz {
                 this.blockData.pos = nextPos;
                 this.blockData.state = nextState;
                 this.isMoving = false;
-                
+
                 // Snap to exact position to avoid floating point drift
                 const finalVisualPos = this.getVisualPosition(nextPos, nextState);
                 this.block.position.set(finalVisualPos.x, finalVisualPos.y, finalVisualPos.z);
@@ -271,9 +280,7 @@ class Bloxorz {
         this.gameState = 'win';
         document.getElementById('overlay').classList.remove('hidden');
         document.getElementById('overlay-title').textContent = 'Level Complete!';
-        new TWEEN.Tween(this.block.position)
-            .to({ y: -1 }, 500)
-            .start();
+        new TWEEN.Tween(this.block.position).to({ y: -1 }, 500).start();
     }
 
     fail() {
@@ -290,10 +297,22 @@ class Bloxorz {
     setupControls() {
         window.addEventListener('keydown', (e) => {
             switch (e.key) {
-                case 'ArrowUp': case 'w': this.move('up'); break;
-                case 'ArrowDown': case 's': this.move('down'); break;
-                case 'ArrowLeft': case 'a': this.move('left'); break;
-                case 'ArrowRight': case 'd': this.move('right'); break;
+                case 'ArrowUp':
+                case 'w':
+                    this.move('up');
+                    break;
+                case 'ArrowDown':
+                case 's':
+                    this.move('down');
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                    this.move('left');
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                    this.move('right');
+                    break;
             }
         });
 

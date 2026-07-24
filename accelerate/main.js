@@ -16,7 +16,7 @@ class GameManager {
     createGrid() {
         const gridContainer = document.getElementById('grid-container');
         gridContainer.innerHTML = '';
-        
+
         for (let i = 0; i < 16; i++) {
             const cell = document.createElement('div');
             cell.className = 'grid-cell';
@@ -39,16 +39,16 @@ class GameManager {
                     const tile = document.createElement('div');
                     tile.className = `tile tile-${value}`;
                     tile.textContent = value;
-                    
+
                     const left = c * (cellSize + gap);
                     const top = r * (cellSize + gap);
-                    
+
                     tile.style.width = `${cellSize}px`;
                     tile.style.height = `${cellSize}px`;
                     tile.style.left = `${left}px`;
                     tile.style.top = `${top}px`;
                     tile.style.lineHeight = `${cellSize}px`;
-                    
+
                     tileContainer.appendChild(tile);
                 }
             }

@@ -15,15 +15,17 @@ function createEmptyGrid() {
 
 // Merge logic (copied from game.js for testing)
 function mergeLine(line) {
-    const nonZero = line.filter(val => val !== 0);
+    const nonZero = line.filter((val) => val !== 0);
     const merged = [];
     let addedScore = 0;
     let i = 0;
 
     while (i < nonZero.length) {
-        if (i + 2 < nonZero.length &&
+        if (
+            i + 2 < nonZero.length &&
             nonZero[i] === nonZero[i + 1] &&
-            nonZero[i] === nonZero[i + 2]) {
+            nonZero[i] === nonZero[i + 2]
+        ) {
             const newExp = nonZero[i] + 1;
             merged.push(newExp);
             addedScore += TILE_VALUES[newExp];
@@ -43,7 +45,7 @@ function mergeLine(line) {
 
 // Matrix transpose
 function transpose(g) {
-    return g[0].map((_, i) => g.map(row => row[i]));
+    return g[0].map((_, i) => g.map((row) => row[i]));
 }
 
 // Slide functions
@@ -58,7 +60,7 @@ function slideRight(gridRow) {
 }
 
 function performSlide(g, dir) {
-    let gridCopy = g.map(row => [...row]);
+    let gridCopy = g.map((row) => [...row]);
     let deltaScore = 0;
 
     if (dir === 'left' || dir === 'right') {
@@ -184,7 +186,7 @@ function createGameState() {
                 this.history.shift();
             }
             this.history.push({
-                grid: this.grid.map(row => [...row]),
+                grid: this.grid.map((row) => [...row]),
                 score: this.score,
                 moves: this.moves,
                 gameWon: this.gameWon,
@@ -450,7 +452,7 @@ describe('6561 Game Logic', () => {
     describe('GameState - Combo system', () => {
         it('should track combo on consecutive merges', () => {
             const state = createGameState();
-            
+
             // Simulate consecutive merges
             state.combo = 0;
             state.combo++; // First merge
@@ -462,7 +464,7 @@ describe('6561 Game Logic', () => {
 
         it('should track max combo', () => {
             const state = createGameState();
-            
+
             state.combo = 3;
             if (state.combo > state.maxCombo) {
                 state.maxCombo = state.combo;
@@ -547,7 +549,7 @@ describe('6561 Game Logic', () => {
         it('should detect game over scenario', () => {
             // Create a full grid with no possible moves
             const grid = Array.from({ length: SIZE }, (_, row) =>
-                Array(SIZE).fill(row % 3 === 0 ? 1 : (row % 3 === 1 ? 2 : 3))
+                Array(SIZE).fill(row % 3 === 0 ? 1 : row % 3 === 1 ? 2 : 3)
             );
 
             expect(hasEmpty(grid)).toBe(false);
@@ -589,7 +591,7 @@ describe('6561 Game Logic', () => {
             const grid = createEmptyGrid();
             grid[0] = [1, 2, 1, 2, 1, 2];
             const result = performSlide(grid, 'left');
-            
+
             // No merges possible, just compress
             expect(result.newGrid[0]).toEqual([1, 2, 1, 2, 1, 2]);
             expect(result.score).toBe(0);
@@ -599,7 +601,7 @@ describe('6561 Game Logic', () => {
             const grid = createEmptyGrid();
             grid[0][0] = 5;
             const result = performSlide(grid, 'right');
-            
+
             expect(result.newGrid[0][5]).toBe(5);
             expect(result.score).toBe(0);
         });

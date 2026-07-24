@@ -3,7 +3,8 @@
 ## Building & Running
 
 ### Prerequisites
-- Xcode 16+ 
+
+- Xcode 16+
 - iOS 17+ target device or simulator
 
 ### Setup

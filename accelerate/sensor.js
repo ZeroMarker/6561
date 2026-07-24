@@ -49,12 +49,12 @@ class SensorController {
         window.addEventListener('devicemotion', (event) => {
             this.handleMotion(event);
         });
-        
+
         // 添加设备方向监听（备选方案）
         window.addEventListener('deviceorientation', (event) => {
             this.handleOrientation(event);
         });
-        
+
         this.hasPermission = true;
         this.isListening = true;
     }
@@ -110,14 +110,14 @@ class SensorController {
 
     handleMotion(event) {
         const acceleration = event.accelerationIncludingGravity;
-        
+
         if (!acceleration) return;
 
         const currentTime = Date.now();
-        
+
         // 冷却时间内，忽略后续触发
         if (currentTime - this.lastMoveTime < this.moveCooldown) return;
-        
+
         // 正在处理中，忽略
         if (this.isProcessing) return;
 
@@ -156,7 +156,7 @@ class SensorController {
 
         if (direction) {
             this.onMove(direction);
-            
+
             if (navigator.vibrate) {
                 navigator.vibrate(50);
             }

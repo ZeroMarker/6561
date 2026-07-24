@@ -66,30 +66,22 @@ async function build() {
     console.log('- Minified sw.js + source map');
 
     // Copy static assets
-    fs.copyFileSync(
-        path.join(ROOT_DIR, 'manifest.json'),
-        path.join(WWW_DIR, 'manifest.json')
-    );
+    fs.copyFileSync(path.join(ROOT_DIR, 'manifest.json'), path.join(WWW_DIR, 'manifest.json'));
     console.log('- Copied manifest.json');
 
     if (fs.existsSync(path.join(ROOT_DIR, 'icon-192.png'))) {
-        fs.copyFileSync(
-            path.join(ROOT_DIR, 'icon-192.png'),
-            path.join(WWW_DIR, 'icon-192.png')
-        );
-        fs.copyFileSync(
-            path.join(ROOT_DIR, 'icon-512.png'),
-            path.join(WWW_DIR, 'icon-512.png')
-        );
+        fs.copyFileSync(path.join(ROOT_DIR, 'icon-192.png'), path.join(WWW_DIR, 'icon-192.png'));
+        fs.copyFileSync(path.join(ROOT_DIR, 'icon-512.png'), path.join(WWW_DIR, 'icon-512.png'));
         console.log('- Copied icons');
     }
 
     // Size report
     const files = ['index.html', 'styles.css', 'game.js', 'sw.js'];
-    const originalSize = files.reduce((sum, f) =>
-        sum + fs.statSync(path.join(ROOT_DIR, f)).size, 0);
-    const minifiedSize = files.reduce((sum, f) =>
-        sum + fs.statSync(path.join(WWW_DIR, f)).size, 0);
+    const originalSize = files.reduce(
+        (sum, f) => sum + fs.statSync(path.join(ROOT_DIR, f)).size,
+        0
+    );
+    const minifiedSize = files.reduce((sum, f) => sum + fs.statSync(path.join(WWW_DIR, f)).size, 0);
     const savings = ((1 - minifiedSize / originalSize) * 100).toFixed(1);
 
     console.log('\nBuild Summary:');
@@ -98,7 +90,7 @@ async function build() {
     console.log('  Savings: ' + savings + '%\n');
 }
 
-build().catch(err => {
+build().catch((err) => {
     console.error('Build failed:', err.message);
     process.exit(1);
 });
