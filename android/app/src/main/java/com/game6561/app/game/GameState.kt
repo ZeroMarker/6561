@@ -20,7 +20,7 @@ data class GameState(
     val maxCombo: Int = 0,
     val gamesPlayed: Int = 0,
     val gamesWon: Int = 0,
-    val isTimerRunning: Boolean = false
+    val history: List<HistoryEntry> = emptyList()
 ) {
     fun copyGrid(): Array<IntArray> = Array(GRID_SIZE) { r -> grid[r].copyOf() }
 

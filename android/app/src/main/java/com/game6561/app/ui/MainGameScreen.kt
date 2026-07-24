@@ -1,8 +1,5 @@
 package com.game6561.app.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,8 +29,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -108,20 +108,12 @@ fun MainGameScreen(
                     .padding(padding)
                     .verticalScroll(rememberScrollState())
                     .onPreviewKeyEvent { event ->
-                        if (event.type == androidx.compose.ui.input.key.KeyEventType.KeyUp) {
+                        if (event.type == KeyEventType.KeyUp) {
                             when (event.key) {
-                                Key.DirectionLeft, Key.A -> {
-                                    viewModel.move(Direction.LEFT); true
-                                }
-                                Key.DirectionRight, Key.D -> {
-                                    viewModel.move(Direction.RIGHT); true
-                                }
-                                Key.DirectionUp, Key.W -> {
-                                    viewModel.move(Direction.UP); true
-                                }
-                                Key.DirectionDown, Key.S -> {
-                                    viewModel.move(Direction.DOWN); true
-                                }
+                                Key.DirectionLeft, Key.A -> { viewModel.move(Direction.LEFT); true }
+                                Key.DirectionRight, Key.D -> { viewModel.move(Direction.RIGHT); true }
+                                Key.DirectionUp, Key.W -> { viewModel.move(Direction.UP); true }
+                                Key.DirectionDown, Key.S -> { viewModel.move(Direction.DOWN); true }
                                 Key.Z -> if (event.isCtrlPressed) { viewModel.undo(); true } else false
                                 Key.N -> if (event.isCtrlPressed) { viewModel.newGame(); true } else false
                                 else -> false
@@ -191,11 +183,7 @@ fun MainGameScreen(
                     )
 
                     // Win overlay
-                    AnimatedVisibility(
-                        visible = viewModel.showWinDialog,
-                        enter = fadeIn(),
-                        exit = fadeOut()
-                    ) {
+                    if (viewModel.showWinDialog) {
                         GameOverlay(
                             title = "🎉 You Win!",
                             subtitle = "Reached 6561!",
@@ -211,11 +199,7 @@ fun MainGameScreen(
                     }
 
                     // Game over overlay
-                    AnimatedVisibility(
-                        visible = viewModel.showGameOverDialog,
-                        enter = fadeIn(),
-                        exit = fadeOut()
-                    ) {
+                    if (viewModel.showGameOverDialog) {
                         GameOverlay(
                             title = "😢 Game Over!",
                             stats = listOf(

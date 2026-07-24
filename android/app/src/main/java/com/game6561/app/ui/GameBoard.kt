@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -93,9 +92,8 @@ fun GameBoard(
                 )
             }
     ) {
-        val totalWidth = maxWidth - 8.dp
-        val tileSize = (totalWidth - (GRID_SIZE - 1) * 4.dp) / GRID_SIZE
         val gap = 4.dp
+        val tileSize = (maxWidth - 4.dp * (GRID_SIZE + 1)) / GRID_SIZE
 
         for (row in 0 until GRID_SIZE) {
             for (col in 0 until GRID_SIZE) {
@@ -103,11 +101,11 @@ fun GameBoard(
                 if (exp == 0) continue
 
                 val value = TILE_VALUES.getOrElse(exp) { 0 }
-                val color = tileColors[exp] ?: Color.Gray
-                val textColor = tileTextColors[exp.coerceIn(0, 9)] ?: Color.Black
+                val color = tileColors.getOrElse(exp) { Color.Gray }
+                val textColor = tileTextColors.getOrElse(exp.coerceIn(1, 9)) { Color.Black }
 
-                val xOffset = 4.dp + col * (tileSize + gap)
-                val yOffset = 4.dp + row * (tileSize + gap)
+                val xOffset = 4.dp + (tileSize + gap) * col
+                val yOffset = 4.dp + (tileSize + gap) * row
 
                 TileCell(
                     value = value,
@@ -115,8 +113,7 @@ fun GameBoard(
                     textColor = textColor,
                     size = tileSize,
                     xOffset = xOffset,
-                    yOffset = yOffset,
-                    key = "${row}-${col}-${exp}"
+                    yOffset = yOffset
                 )
             }
         }
