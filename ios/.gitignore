@@ -1,0 +1,7 @@
+*.xcworkspace
+xcuserdata/
+DerivedData/
+build/
+*.app
+*.ipa
+Pods/
