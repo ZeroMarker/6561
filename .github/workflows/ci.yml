@@ -125,7 +125,21 @@ jobs:
           cd ios
           xcodebuild -project Game6561.xcodeproj -scheme Game6561 \
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
-            CODE_SIGNING_ALLOWED=NO build
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+      - name: Package Simulator App
+        run: |
+          APP_PATH=$(find ios/build -name "Game6561.app" -type d | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Game6561.app not found in build output"
+            exit 1
+          fi
+          cd "$(dirname "$APP_PATH")"
+          zip -r "$GITHUB_WORKSPACE/Game6561-simulator.zip" "$(basename "$APP_PATH")"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-app
+          path: Game6561-simulator.zip
+          if-no-files-found: error
 
   release:
     name: Create Release
@@ -140,6 +154,10 @@ jobs:
         with:
           name: android-apk
           path: release-artifacts
+      - uses: actions/download-artifact@v4
+        with:
+          name: ios-simulator-app
+          path: release-artifacts-ios
       - name: Generate Release Notes
         id: notes
         run: |
@@ -151,12 +169,15 @@ jobs:
           ### Downloads
           - **Android APK** (debug): app-debug.apk
           - **Android APK** (release, if signed): app-release.apk
+          - **iOS Simulator App**: Game6561-simulator.zip（解压后将 \`Game6561.app\` 拖入模拟器即可安装运行）
 
           ### Web
           - Play online at: https://$(echo ${{ github.repository }} | cut -d/ -f1).github.io/$(echo ${{ github.repository }} | cut -d/ -f2)/
 
-          ### iOS
-          Build from source: \`cd ios && xcodegen generate\` then open \`Game6561.xcodeproj\` in Xcode.
+          ### iOS 真机安装说明
+          - 模拟器包（无签名）仅用于 iOS Simulator，无法安装到真机
+          - 真机安装需在 Xcode 中配置 Apple Developer 签名后 Archive 导出（详见 \`ios/README.md\`）
+          - 手动构建：\`cd ios && xcodegen generate\` 后用 Xcode 打开 \`Game6561.xcodeproj\` 构建
 
           ### Changelog
           See commits since previous release.
@@ -166,7 +187,9 @@ jobs:
         with:
           name: 6561 v${{ steps.notes.outputs.version }}
           body_path: release-notes.md
-          files: release-artifacts/**/*
+          files: |
+            release-artifacts/**/*
+            release-artifacts-ios/**/*
 
   deploy-pages:
     name: Deploy to GitHub Pages

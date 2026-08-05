@@ -60,3 +60,13 @@ ios/
 - Game statistics tracking
 - Undo support (up to 10 moves)
 - Combo scoring system
+
+## CI 自动构建与发布
+
+打 tag（`v*`）时 CI 会自动构建并发布：
+
+- **iOS Simulator App**（`Game6561-simulator.zip`，无签名）：解压后将 `Game6561.app` 拖入模拟器即可安装运行
+- **真机 ipa**：当前 CI 未配置 Apple 签名证书，因此不产出真机安装包。如需真机安装：
+  1. 在 Xcode 中打开 `Game6561.xcodeproj`，配置你的 Team 与签名
+  2. `Product → Archive` 导出 ipa（或 ad-hoc 分发）
+  3. 后续如需在 CI 自动签名，可参考 [apple-actions/import-codesigning-certs](https://github.com/apple-actions/import-codesigning-certs) 配置证书 secrets 后追加 `xcodebuild -exportArchive` 步骤
