@@ -4,41 +4,50 @@
 
 ### Prerequisites
 
-- Xcode 16+
-- iOS 17+ target device or simulator
+- macOS with Xcode 16+
+- [XcodeGen](https://github.com/yonaskolb/XcodeGen)（用于生成 Xcode 工程）
 
 ### Setup
 
-1. Open Xcode
-2. Select **File → Open** and choose `ios/Game6561/` directory
-3. Xcode will automatically detect the Swift files and set up the project
-4. Select your target device/simulator
-5. Press **⌘R** to build and run
+```bash
+cd ios
+xcodegen generate        # 生成 Game6561.xcodeproj
+open Game6561.xcodeproj  # 打开 Xcode
+```
+
+然后在 Xcode 中选择目标设备/模拟器，按 **⌘R** 运行。
+
+> 说明：`Game6561.xcodeproj` 由 XcodeGen 从 `project.yml` 生成，不直接提交到仓库。
 
 ### Project Structure
 
 ```
-ios/Game6561/
-├── Game6561App.swift          # App entry point
-├── ContentView.swift          # Main game screen
-├── Info.plist                 # App configuration
-├── Game/
-│   ├── GameState.swift        # Data models
-│   └── GameEngine.swift       # Game logic (merge, slide, etc.)
-├── Data/
-│   └── GamePreferences.swift  # UserDefaults persistence
-├── Sound/
-│   └── SoundManager.swift     # AVAudioEngine sound synthesis
-├── ViewModel/
-│   └── GameViewModel.swift    # ObservableObject state manager
-└── Views/
-    ├── GameBoardView.swift    # Swipeable 6×6 tile grid
-    ├── ScoreBoardView.swift   # Score/Best/Moves/Time
-    ├── ControlBarView.swift   # Action buttons
-    ├── OverlayView.swift      # Win/GameOver overlays
-    ├── SettingsView.swift     # Settings dialog
-    ├── StatsView.swift        # Statistics dialog
-    └── TutorialView.swift     # Welcome tutorial
+ios/
+├── project.yml                # XcodeGen 配置（生成工程）
+├── Game6561/
+│   ├── Game6561App.swift      # App entry point
+│   ├── ContentView.swift      # Main game screen
+│   ├── Info.plist             # App configuration
+│   ├── LaunchScreen.storyboard
+│   ├── Assets.xcassets        # Asset catalog
+│   ├── Game/
+│   │   ├── GameState.swift    # Data models
+│   │   └── GameEngine.swift   # Game logic (merge, slide, etc.)
+│   ├── Data/
+│   │   └── GamePreferences.swift # UserDefaults persistence
+│   ├── Sound/
+│   │   └── SoundManager.swift # AVAudioEngine sound synthesis
+│   ├── ViewModel/
+│   │   └── GameViewModel.swift # ObservableObject state manager
+│   └── Views/
+│       ├── GameBoardView.swift # Swipeable 6×6 tile grid
+│       ├── ScoreBoardView.swift
+│       ├── ControlBarView.swift
+│       ├── OverlayView.swift   # Win/GameOver overlays
+│       ├── SettingsView.swift
+│       ├── StatsView.swift
+│       └── TutorialView.swift
+└── README.md
 ```
 
 ## Features

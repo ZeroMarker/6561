@@ -19,6 +19,9 @@ class SoundManager(private val context: Context) {
 
     private var enabled = true
 
+    // 音效播放线程：避免 WIN 三连音序列阻塞 UI 线程
+    private val soundExecutor = java.util.concurrent.Executors.newSingleThreadExecutor()
+
     private val vibrator: Vibrator? by lazy {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val vm = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
@@ -43,7 +46,7 @@ class SoundManager(private val context: Context) {
                 vibrate(30L)
             }
             SoundType.COMBO -> playTone(600.0, 0.2, 0.2f)
-            SoundType.WIN -> {
+            SoundType.WIN -> soundExecutor.execute {
                 playTone(523.25, 0.3, 0.1f)
                 Thread.sleep(50)
                 playTone(659.25, 0.3, 0.1f)
@@ -124,7 +127,9 @@ class SoundManager(private val context: Context) {
         } catch (_: Exception) {}
     }
 
-    fun release() {}
+    fun release() {
+        soundExecutor.shutdown()
+    }
 }
 
 enum class SoundType {

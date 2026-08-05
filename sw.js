@@ -1,12 +1,13 @@
-const CACHE_NAME = '6561-v4';
+const CACHE_NAME = '6561-v5';
+// 使用相对路径，兼容 GitHub Pages 子路径部署（/repo/）
 const ASSETS = [
-    '/',
-    '/index.html',
-    '/styles.css',
-    '/game.js',
-    '/manifest.json',
-    '/icon-192.png',
-    '/icon-512.png'
+    './',
+    './index.html',
+    './styles.css',
+    './game.js',
+    './manifest.json',
+    './icon-192.png',
+    './icon-512.png'
 ];
 
 // 预缓存静态资源
@@ -77,7 +78,7 @@ self.addEventListener('fetch', (e) => {
             .catch(() => {
                 // 完全离线时的回退
                 if (e.request.destination === 'document') {
-                    return caches.match('/index.html');
+                    return caches.match('./index.html');
                 }
                 return new Response('Offline', { status: 503 });
             })

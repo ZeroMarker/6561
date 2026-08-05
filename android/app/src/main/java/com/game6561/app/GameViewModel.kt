@@ -74,6 +74,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val newState = GameEngine.move(state, direction)
         if (newState !== state) {
             val wasWon = state.gameWon
+            val merged = newState.totalMerges > state.totalMerges
             state = newState
             prefs.saveGameState(newState)
 
@@ -89,6 +90,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 soundManager.play(SoundType.GAME_OVER)
             } else {
                 soundManager.play(SoundType.MOVE)
+                if (merged) {
+                    soundManager.play(if (newState.combo > 1) SoundType.COMBO else SoundType.MERGE)
+                }
             }
 
             if (newState.gameWon && !wasWon) {
@@ -121,6 +125,18 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         startTimer()
         soundManager.play(SoundType.START)
         prefs.clearGameState()
+    }
+
+    /** App 进入后台：暂停计时器 */
+    fun onAppBackgrounded() {
+        stopTimer()
+    }
+
+    /** App 回到前台：恢复计时器 */
+    fun onAppForegrounded() {
+        if (!state.gameOver) {
+            startTimer()
+        }
     }
 
     fun keepPlaying() {

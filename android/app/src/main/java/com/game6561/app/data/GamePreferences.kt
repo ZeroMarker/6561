@@ -18,6 +18,9 @@ class GamePreferences(context: Context) {
             .putInt("timer", state.gameTimer)
             .putBoolean("gameWon", state.gameWon)
             .putBoolean("gameOver", state.gameOver)
+            .putInt("combo", state.combo)
+            .putInt("totalMerges", state.totalMerges)
+            .putInt("maxCombo", state.maxCombo)
             .apply()
     }
 
@@ -30,7 +33,10 @@ class GamePreferences(context: Context) {
             moves = prefs.getInt("moves", 0),
             gameTimer = prefs.getInt("timer", 0),
             gameWon = prefs.getBoolean("gameWon", false),
-            gameOver = prefs.getBoolean("gameOver", false)
+            gameOver = prefs.getBoolean("gameOver", false),
+            combo = prefs.getInt("combo", 0),
+            totalMerges = prefs.getInt("totalMerges", 0),
+            maxCombo = prefs.getInt("maxCombo", 0)
         )
     }
 
@@ -43,6 +49,9 @@ class GamePreferences(context: Context) {
             .remove("timer")
             .remove("gameWon")
             .remove("gameOver")
+            .remove("combo")
+            .remove("totalMerges")
+            .remove("maxCombo")
             .apply()
     }
 

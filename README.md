@@ -82,6 +82,7 @@ npm run build
 ├── game.js             # Game logic and rendering
 ├── sw.js               # Service Worker for offline support
 ├── manifest.json       # PWA manifest
+├── icon.svg            # App icon (SVG)
 ├── icon-192.png        # PWA icon (192x192)
 ├── icon-512.png        # PWA icon (512x512)
 ├── scripts/
@@ -89,7 +90,9 @@ npm run build
 ├── tests/
 │   └── game.test.js    # Unit tests
 ├── www/                # Production build output
-├── android/            # Android app (Capacitor)
+├── android/            # Native Android app (Kotlin + Jetpack Compose)
+├── ios/                # Native iOS app source (SwiftUI, XcodeGen)
+├── bloxorz/ maze/ tetris/ accelerate/   # 独立实验小游戏（未集成到主应用）
 └── README.md           # This file
 ```
 
@@ -100,11 +103,12 @@ npm run build
 - Service Worker for offline support
 - Vitest for unit testing
 - ESLint & Prettier for code quality
-- Capacitor for Android builds
+- Native Android (Kotlin + Jetpack Compose) and iOS (SwiftUI, XcodeGen)
 
-## 📱 Android Build
+## 📱 Mobile Apps
 
-See [ANDROID_BUILD.md](ANDROID_BUILD.md) for detailed Android build instructions.
+- **Android**: native Kotlin + Compose app, see [ANDROID_BUILD.md](ANDROID_BUILD.md)
+- **iOS**: SwiftUI source under `ios/Game6561/`; generate the Xcode project with [XcodeGen](https://github.com/yonaskolb/XcodeGen): `cd ios && xcodegen generate`, then open `Game6561.xcodeproj`
 
 ## 🧪 Running Tests
 
@@ -165,7 +169,7 @@ npm run test:watch
 
 ## 📄 License
 
-ISC License
+MIT License
 
 ## 🙏 Acknowledgments
 

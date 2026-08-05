@@ -48,6 +48,7 @@ class GameViewModel: ObservableObject {
         }
 
         let wasWon = state.gameWon
+        let merged = newState.totalMerges > state.totalMerges
         state = newState
         prefs.saveGameState(newState)
 
@@ -58,6 +59,9 @@ class GameViewModel: ObservableObject {
             soundManager.play(.gameOver)
         } else {
             soundManager.play(.move)
+            if merged {
+                soundManager.play(newState.combo > 1 ? .combo : .merge)
+            }
         }
 
         if newState.gameWon && !wasWon {

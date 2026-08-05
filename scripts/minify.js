@@ -75,6 +75,11 @@ async function build() {
         console.log('- Copied icons');
     }
 
+    if (fs.existsSync(path.join(ROOT_DIR, 'icon.svg'))) {
+        fs.copyFileSync(path.join(ROOT_DIR, 'icon.svg'), path.join(WWW_DIR, 'icon.svg'));
+        console.log('- Copied icon.svg');
+    }
+
     // Size report
     const files = ['index.html', 'styles.css', 'game.js', 'sw.js'];
     const originalSize = files.reduce(

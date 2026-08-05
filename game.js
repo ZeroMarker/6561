@@ -264,27 +264,35 @@ const Statistics = {
         });
         GameState.gamesPlayed = stats.gamesPlayed;
         GameState.gamesWon = stats.gamesWon;
-        GameState.best = stats.bestScore;
+        GameState.best = Math.max(stats.bestScore, Storage.get('best6561', 0));
         return stats;
     },
 
     recordGame(won, finalScore, finalMoves, maxCombo) {
-        GameState.gamesPlayed++;
-        if (won) {
-            GameState.gamesWon++;
-        }
+        const prev = Storage.get('stats6561', {
+            gamesPlayed: 0,
+            gamesWon: 0,
+            totalScore: 0,
+            bestScore: 0,
+            totalMoves: 0,
+            maxCombo: 0
+        });
 
         const stats = {
-            gamesPlayed: GameState.gamesPlayed,
-            gamesWon: GameState.gamesWon,
-            totalScore: Storage.get('totalScore6561', 0) + finalScore,
-            bestScore: Math.max(Storage.get('bestScore6561', 0), finalScore),
-            totalMoves: Storage.get('totalMoves6561', 0) + finalMoves,
-            maxCombo: Math.max(Storage.get('maxCombo6561', 0), maxCombo)
+            gamesPlayed: prev.gamesPlayed + 1,
+            gamesWon: prev.gamesWon + (won ? 1 : 0),
+            totalScore: prev.totalScore + finalScore,
+            bestScore: Math.max(prev.bestScore, Storage.get('best6561', 0), finalScore),
+            totalMoves: prev.totalMoves + finalMoves,
+            maxCombo: Math.max(prev.maxCombo, maxCombo)
         };
 
+        GameState.gamesPlayed = stats.gamesPlayed;
+        GameState.gamesWon = stats.gamesWon;
+        GameState.best = stats.bestScore;
+
         Storage.set('stats6561', stats);
-        Storage.set('bestScore6561', stats.bestScore);
+        Storage.set('best6561', stats.bestScore);
         return stats;
     },
 
@@ -545,7 +553,7 @@ function hasEmpty() {
 
 // ==================== 游戏核心逻辑 ====================
 function move(dir) {
-    if (GameState.gameOver) {
+    if (GameState.gameOver || PauseSystem.isPaused) {
         return;
     }
 
@@ -681,7 +689,15 @@ function showWin() {
 }
 
 function showGameOver() {
+    if (GameState.gameOver) {
+        return;
+    }
     GameState.gameOver = true;
+    // 停止计时器，避免游戏结束后持续空转
+    if (GameState.timerInterval) {
+        clearInterval(GameState.timerInterval);
+        GameState.timerInterval = null;
+    }
     DOM.overlayGameOverEl.classList.add('active');
     SoundSystem.play('gameover');
     if (navigator.vibrate) {
@@ -750,21 +766,38 @@ function updateDisplay() {
         DOM.soundBtnEl.textContent = Settings.soundEnabled ? '🔊 On' : '🔇 Off';
     }
 
+    // 更新设置面板内的主题/音效按钮
+    const themeSettingsBtn = document.getElementById('btn-theme-settings');
+    if (themeSettingsBtn) {
+        themeSettingsBtn.textContent = Settings.theme === 'light' ? '🌙 Dark' : '☀️ Light';
+    }
+    const soundSettingsBtn = document.getElementById('btn-sound-settings');
+    if (soundSettingsBtn) {
+        soundSettingsBtn.textContent = Settings.soundEnabled ? '🔊 On' : '🔇 Off';
+    }
+
     TileRenderer.render();
 }
 
 // ==================== 游戏控制 ====================
-function restartGame() {
-    TileRenderer.clear();
-    GameState.reset();
-
+function startTimer() {
     if (GameState.timerInterval) {
         clearInterval(GameState.timerInterval);
     }
     GameState.timerInterval = setInterval(() => {
         GameState.gameTimer++;
-        updateDisplay();
+        // 计时器只更新时间文本，避免每秒钟全量重渲染棋盘
+        if (DOM.timerEl) {
+            DOM.timerEl.textContent = formatTime(GameState.gameTimer);
+        }
     }, 1000);
+}
+
+function restartGame() {
+    TileRenderer.clear();
+    GameState.reset();
+
+    startTimer();
 
     addRandomTile();
     addRandomTile();
@@ -817,13 +850,7 @@ const PauseSystem = {
             return;
         }
         this.isPaused = false;
-        if (GameState.timerInterval) {
-            clearInterval(GameState.timerInterval);
-        }
-        GameState.timerInterval = setInterval(() => {
-            GameState.gameTimer++;
-            updateDisplay();
-        }, 1000);
+        startTimer();
         document.body.classList.remove('paused');
     }
 };
@@ -856,7 +883,7 @@ function loadGameState() {
             const state = saved;
             GameState.grid = state.grid || Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
             GameState.score = state.score || 0;
-            GameState.best = state.best || 0;
+            GameState.best = Math.max(state.best || 0, GameState.best);
             GameState.moves = state.moves || 0;
             GameState.gameTimer = state.gameTimer || 0;
             GameState.gameWon = state.gameWon || false;
@@ -995,6 +1022,11 @@ function hideTutorial() {
     }
 }
 
+// ==================== 主题应用 ====================
+function applyTheme() {
+    document.body.classList.toggle('dark', Settings.theme === 'dark');
+}
+
 // ==================== 设置面板 ====================
 function toggleSettings() {
     const settings = document.getElementById('settings-overlay');
@@ -1033,7 +1065,7 @@ function showStats() {
             bestScoreEl.textContent = GameState.best;
         }
         if (maxComboEl) {
-            maxComboEl.textContent = Storage.get('maxCombo6561', 0);
+            maxComboEl.textContent = Storage.get('stats6561', { maxCombo: 0 }).maxCombo;
         }
 
         stats.classList.add('active');
@@ -1059,8 +1091,8 @@ function init() {
     Statistics.init();
     DOM.init();
 
-    // 应用主题
-    document.body.className = Settings.theme;
+    // 应用主题（保留 reduced-motion / paused 等 body 类）
+    applyTheme();
 
     // 应用 reduced motion
     if (Settings.reducedMotion) {
@@ -1085,7 +1117,16 @@ function init() {
     document.getElementById('btn-close-tutorial')?.addEventListener('click', hideTutorial);
     document.getElementById('btn-theme')?.addEventListener('click', () => {
         Settings.toggleTheme();
-        document.body.className = Settings.theme;
+        applyTheme();
+        updateDisplay();
+    });
+    document.getElementById('btn-theme-settings')?.addEventListener('click', () => {
+        Settings.toggleTheme();
+        applyTheme();
+        updateDisplay();
+    });
+    document.getElementById('btn-sound-settings')?.addEventListener('click', () => {
+        Settings.toggleSound();
         updateDisplay();
     });
     document.getElementById('btn-sound')?.addEventListener('click', () => {
@@ -1106,14 +1147,8 @@ function init() {
 
     if (loaded) {
         // 恢复计时器
-        if (GameState.timerInterval) {
-            clearInterval(GameState.timerInterval);
-        }
         if (!GameState.gameOver && !PauseSystem.isPaused) {
-            GameState.timerInterval = setInterval(() => {
-                GameState.gameTimer++;
-                updateDisplay();
-            }, 1000);
+            startTimer();
         }
         updateDisplay();
     } else {
@@ -1125,7 +1160,7 @@ function init() {
     // 注册 Service Worker
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker
-            .register('/sw.js')
+            .register('sw.js')
             .then((registration) => {
                 console.log('SW registered:', registration.scope);
                 // 检查更新

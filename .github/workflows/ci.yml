@@ -92,6 +92,23 @@ jobs:
           name: android-apk
           path: android/app/build/outputs/apk/**/*.apk
 
+  build-pages:
+    name: Build Web for Pages
+    if: github.ref == 'refs/heads/main'
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: www
+
   validate-ios:
     name: Validate iOS Build
     if: startsWith(github.ref, 'refs/tags/v')
@@ -99,23 +116,16 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: List Xcode versions
-        run: xcodebuild -version
-      - name: Check Swift syntax
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        run: cd ios && xcodegen generate
+      - name: Build for iOS Simulator
         run: |
           cd ios
-          swift build 2>/dev/null || true
-          # Validate syntax of all Swift files
-          for f in $(find Game6561 -name "*.swift"); do
-            swiftc -typecheck "$f" 2>&1 || echo "Info: $f needs Xcode project context"
-          done
-      - name: Check project structure
-        run: |
-          echo "iOS source files:"
-          find ios/Game6561 -name "*.swift" | sort
-          echo "---"
-          echo "Lines of Swift code:"
-          find ios/Game6561 -name "*.swift" -exec wc -l {} +
+          xcodebuild -project Game6561.xcodeproj -scheme Game6561 \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build
 
   release:
     name: Create Release
@@ -146,7 +156,7 @@ jobs:
           - Play online at: https://$(echo ${{ github.repository }} | cut -d/ -f1).github.io/$(echo ${{ github.repository }} | cut -d/ -f2)/
 
           ### iOS
-          Open in Xcode and build from source: \`ios/Game6561/\`
+          Build from source: \`cd ios && xcodegen generate\` then open \`Game6561.xcodeproj\` in Xcode.
 
           ### Changelog
           See commits since previous release.
@@ -161,7 +171,7 @@ jobs:
   deploy-pages:
     name: Deploy to GitHub Pages
     if: github.ref == 'refs/heads/main'
-    needs: [build-web]
+    needs: [build-pages]
     runs-on: ubuntu-latest
     permissions:
       pages: write
