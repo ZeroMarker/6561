@@ -136,10 +136,6 @@ class GameViewModel: ObservableObject {
         timer?.invalidate()
         timer = nil
     }
-
-    deinit {
-        stopTimer()
-    }
 }
 
 func formatTime(_ seconds: Int) -> String {
