@@ -125,20 +125,42 @@ jobs:
           cd ios
           xcodebuild -project Game6561.xcodeproj -scheme Game6561 \
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
-            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+            -derivedDataPath build-sim CODE_SIGNING_ALLOWED=NO build
       - name: Package Simulator App
         run: |
-          APP_PATH=$(find ios/build -name "Game6561.app" -type d | head -1)
+          APP_PATH=$(find ios/build-sim -name "Game6561.app" -type d | head -1)
           if [ -z "$APP_PATH" ]; then
-            echo "Game6561.app not found in build output"
+            echo "Game6561.app not found in simulator build output"
             exit 1
           fi
           cd "$(dirname "$APP_PATH")"
           zip -r "$GITHUB_WORKSPACE/Game6561-simulator.zip" "$(basename "$APP_PATH")"
+      - name: Build unsigned Device App (iphoneos)
+        run: |
+          cd ios
+          xcodebuild -project Game6561.xcodeproj -scheme Game6561 \
+            -sdk iphoneos -destination 'generic/platform=iOS' \
+            -configuration Release -derivedDataPath build-device \
+            CODE_SIGNING_ALLOWED=NO build
+      - name: Package unsigned IPA
+        run: |
+          APP_PATH=$(find ios/build-device -name "Game6561.app" -type d | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Game6561.app not found in device build output"
+            exit 1
+          fi
+          PKG_DIR="$GITHUB_WORKSPACE/ipa-build"
+          rm -rf "$PKG_DIR"
+          mkdir -p "$PKG_DIR/Payload"
+          cp -R "$APP_PATH" "$PKG_DIR/Payload/"
+          cd "$PKG_DIR"
+          zip -r "$GITHUB_WORKSPACE/Game6561-unsigned.ipa" Payload
       - uses: actions/upload-artifact@v4
         with:
-          name: ios-simulator-app
-          path: Game6561-simulator.zip
+          name: ios-artifacts
+          path: |
+            Game6561-simulator.zip
+            Game6561-unsigned.ipa
           if-no-files-found: error
 
   release:
@@ -156,7 +178,7 @@ jobs:
           path: release-artifacts
       - uses: actions/download-artifact@v4
         with:
-          name: ios-simulator-app
+          name: ios-artifacts
           path: release-artifacts-ios
       - name: Generate Release Notes
         id: notes
@@ -170,6 +192,7 @@ jobs:
           - **Android APK** (debug): app-debug.apk
           - **Android APK** (release, if signed): app-release.apk
           - **iOS Simulator App**: Game6561-simulator.zip（解压后将 \`Game6561.app\` 拖入模拟器即可安装运行）
+          - **iOS Device IPA（未签名）**: Game6561-unsigned.ipa（标准 Payload 结构，未签名无法直接安装；可自行用证书重签名后安装，或用于越狱设备/测试）
 
           ### Web
           - Play online at: https://$(echo ${{ github.repository }} | cut -d/ -f1).github.io/$(echo ${{ github.repository }} | cut -d/ -f2)/

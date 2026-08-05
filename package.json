@@ -1,6 +1,6 @@
 {
     "name": "6561",
-    "version": "2.0.2",
+    "version": "2.0.3",
     "description": "A puzzle game where you merge three identical numbers to reach 6561. A variant of the popular 2048 game.",
     "devDependencies": {
         "eslint": "^8.57.1",
